@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, avoid_print
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,14 +18,41 @@ class NotificationScreen extends StatefulWidget {
 
 class _NotificationScreenState extends State<NotificationScreen> {
   bool isNotificationLoading = false;
-  var notificationData = [];
+  List<dynamic> notificationData = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNotifications();
+  }
+
+  Future<void> fetchNotifications() async {
+    setState(() {
+      isNotificationLoading = true;
+    });
+
+    try {
+      var response =
+          await ApiProvider().getRequest(apiUrl: "/api/notifications");
+
+      setState(() {
+        notificationData = response['notifications'] ?? [];
+        isNotificationLoading = false;
+      });
+    } catch (error) {
+      print("Error fetching notifications: $error");
+      setState(() {
+        isNotificationLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.whiteColor,
       body: Padding(
-        padding: EdgeInsets.only(left: 10.w, right: 10.w),
+        padding: EdgeInsets.symmetric(horizontal: 10.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -43,7 +70,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 : notificationData.isEmpty
                     ? Expanded(
                         child: Center(
-                          child: Text('No Notification Found'),
+                          child: Text(
+                            'No Notifications Found',
+                            style: CustomTextPopins.regular14(
+                                AppColors.blackColor),
+                          ),
                         ),
                       )
                     : Expanded(
@@ -97,29 +128,40 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         shape: BoxShape.circle,
                         color: AppColors.lightOrangeColor,
                       ),
-                      child: Image.network(
-                        '${resData['icon']}',
-                      ),
-                    ),
-                    resData['isRead']
-                        ? SizedBox()
-                        : Positioned(
-                            right: 8,
-                            child: Container(
-                              height: 11.h,
-                              width: 11.w,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.redColor,
+                      child: resData['icon'] != null
+                          ? ClipOval(
+                              child: Image.network(
+                                '${ApiProvider().baseUrl}${resData['icon']}',
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Icon(Icons.notifications,
+                                        color: AppColors.themeColor),
                               ),
-                            ),
+                            )
+                          : Icon(Icons.notifications,
+                              color: AppColors.themeColor),
+                    ),
+                    if (!(resData['isRead'] ?? true))
+                      Positioned(
+                        right: 8,
+                        child: Container(
+                          height: 11.h,
+                          width: 11.w,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.redColor,
                           ),
+                        ),
+                      ),
                   ],
                 ),
                 SizedBox(height: 5.h),
                 Text(
-                  DateFormat('dd MMM')
-                      .format(DateTime.parse(resData['createdAt'])),
+                  resData['createdAt'] != null
+                      ? DateFormat('dd MMM').format(
+                          DateTime.parse(resData['createdAt']),
+                        )
+                      : '',
                   style: CustomTextPopins.regular12(AppColors.blackColor),
                 ),
               ],
@@ -130,12 +172,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    resData['type'].toString(),
+                    resData['type']?.toString() ?? 'Notification',
                     style: CustomTextPopins.regular14(AppColors.blackColor),
                   ),
                   SizedBox(height: 5.h),
                   Text(
-                    resData['message'].toString(),
+                    resData['message']?.toString() ?? '',
                     style: CustomTextPopins.regular14(
                       AppColors.fieldHintColor,
                     ),

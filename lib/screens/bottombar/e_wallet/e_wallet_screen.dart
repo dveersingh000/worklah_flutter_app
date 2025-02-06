@@ -1,7 +1,8 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, avoid_print
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:work_lah/data/send_request.dart';
 import 'package:work_lah/screens/bottombar/e_wallet/e_wallet_widget.dart';
 import 'package:work_lah/utility/colors.dart';
 import 'package:work_lah/utility/custom_appbar.dart';
@@ -15,12 +16,42 @@ class EWalletScreen extends StatefulWidget {
 }
 
 class _EWalletScreenState extends State<EWalletScreen> {
+  bool isLoading = false;
+  String walletBalance = '0.00';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchWalletBalance();
+  }
+
+  Future<void> fetchWalletBalance() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      var response =
+          await ApiProvider().getRequest(apiUrl: '/api/profile/stats');
+      
+      setState(() {
+        walletBalance = response['wallet']['balance'].toString();
+        isLoading = false;
+      });
+    } catch (error) {
+      print("Error fetching wallet balance: $error");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.whiteColor,
       body: Padding(
-        padding: EdgeInsets.only(left: 10.w, right: 10.w),
+        padding: EdgeInsets.symmetric(horizontal: 10.w),
         child: Column(
           children: [
             SizedBox(height: commonHeight(context) * 0.05),
@@ -30,7 +61,15 @@ class _EWalletScreenState extends State<EWalletScreen> {
               isLeading: false,
             ),
             SizedBox(height: commonHeight(context) * 0.02),
-            WalletCardWidget(),
+
+            isLoading
+                ? Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.themeColor,
+                    ),
+                  )
+                : WalletCardWidget(balance: walletBalance), // Passing fetched balance
+
             SizedBox(height: commonHeight(context) * 0.02),
             CommonRowWithDateFilter(),
             SizedBox(height: commonHeight(context) * 0.03),

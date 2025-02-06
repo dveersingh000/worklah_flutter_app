@@ -6,9 +6,15 @@ import 'package:work_lah/utility/colors.dart';
 import 'package:work_lah/utility/image_path.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:work_lah/utility/syle_poppins.dart';
+import 'package:work_lah/screens/bottombar/profile/cashout/CashOutHomeScreen.dart';
+import 'package:work_lah/utility/display_function.dart';
+import 'package:work_lah/data/send_request.dart';
+import 'package:intl/intl.dart';
+import 'package:dotted_border/dotted_border.dart';
 
 class WalletCardWidget extends StatelessWidget {
-  const WalletCardWidget({super.key});
+  final String balance;
+  const WalletCardWidget({super.key, required this.balance});
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +57,7 @@ class WalletCardWidget extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  '\$4,553',
+                  '\$$balance',
                   style: CustomTextInter.medium24(AppColors.whiteColor),
                 ),
               ),
@@ -63,12 +69,19 @@ class WalletCardWidget extends StatelessWidget {
                   color: AppColors.themeColor,
                 ),
                 child: Center(
-                  child: Row(
-                    children: [
-                      Text(
-                        'Cash Out',
-                        style: CustomTextInter.medium12(AppColors.whiteColor),
-                      ),
+    child: InkWell(
+      onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CashOutHomeScreen()),
+              );
+            },
+      child: Row(
+        children: [
+          Text(
+            'Cash Out',
+            style: CustomTextInter.medium12(AppColors.whiteColor),
+          ),
                       SizedBox(width: 5.w),
                       Icon(
                         Icons.arrow_outward,
@@ -78,6 +91,7 @@ class WalletCardWidget extends StatelessWidget {
                     ],
                   ),
                 ),
+              )
               ),
             ],
           ),
