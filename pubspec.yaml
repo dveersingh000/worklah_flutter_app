@@ -1,0 +1,54 @@
+name: work_lah
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_screenutil: ^5.9.3
+  overlay_support: ^2.1.0
+  fluttertoast: ^8.2.8
+  url_launcher: ^6.3.1
+  shared_preferences: ^2.3.3
+  pinput: ^5.0.0
+  dotted_border: ^2.1.0
+  datepicker_dropdown: ^0.1.5
+  http: ^1.2.2
+  shimmer: ^3.0.0
+  intl: ^0.20.1
+  timeago: ^3.2.2
+  image_picker: ^1.1.2
+  qr_code_scanner: ^1.0.1      # For QR scanning
+  permission_handler: ^11.3.0   # For location permission
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: fonts/Inter-Bold.ttf
+        - asset: fonts/Inter-Medium.ttf
+        - asset: fonts/Inter-Regular.ttf
+        - asset: fonts/Inter-Light.ttf
+        - asset: fonts/Inter-Thin.ttf
+    - family: Poppins
+      fonts:
+        - asset: fonts/Poppins-Bold.ttf
+        - asset: fonts/Poppins-Medium.ttf
+        - asset: fonts/Poppins-Regular.ttf
+        - asset: fonts/Poppins-Light.ttf
+        - asset: fonts/Poppins-Thin.ttf
