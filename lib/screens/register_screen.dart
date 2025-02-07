@@ -14,6 +14,7 @@ import 'package:work_lah/utility/custom_textform_field.dart';
 import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/image_path.dart';
 import 'package:work_lah/utility/style_inter.dart';
+import 'dart:async'; // Import for Timer
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -37,6 +38,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool isContinueLoading = false;
   bool isResendLoading = false;
 
+  int otpTimerSeconds = 60; // Timer duration
+  Timer? otpTimer; // Timer instance
+  bool isTimerRunning = false; // Flag to check timer status
+
+  void startOTPTimer() {
+    if (otpTimer != null) {
+      otpTimer!.cancel(); // Cancel any existing timer
+    }
+
+    setState(() {
+      otpTimerSeconds = 60; // Reset timer to 60 sec
+      isTimerRunning = true;
+    });
+
+    otpTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (otpTimerSeconds > 0) {
+        setState(() {
+          otpTimerSeconds--;
+        });
+      } else {
+        timer.cancel(); // Stop the timer when it reaches 0
+        setState(() {
+          isTimerRunning = false;
+        });
+      }
+    });
+  }
+
   void onGenerateOTP() async {
     setState(() {
       isGenerateOTPLoading = true;
@@ -54,6 +83,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         isGenerateOTPLoading = false;
         isContinueDisable = false;
       });
+      startOTPTimer(); // Start timer after OTP request
     } catch (e) {
       log('Error during Res: $e');
       final errorMessage = e is Map ? e['message'] : 'An error occurred';
@@ -99,6 +129,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void onResendOTP() async {
+    if (isTimerRunning) return; // Prevent resending before timer ends
     setState(() {
       otpControllers.clear();
       isResendLoading = true;
@@ -116,6 +147,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         isResendLoading = false;
         isContinueDisable = false;
       });
+      startOTPTimer(); // Restart timer when OTP is resent
     } catch (e) {
       log('Error during Res: $e');
       final errorMessage = e is Map ? e['message'] : 'An error occurred';
@@ -125,6 +157,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         isContinueDisable = true;
       });
     }
+  }
+
+  @override
+  void dispose() {
+    otpTimer?.cancel(); // Cancel timer when widget is disposed
+    super.dispose();
   }
 
   @override
@@ -268,43 +306,53 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         SizedBox(height: 20.h),
                         CustomOtpField(
-                          controller: otpControllers,
-                          onValidate: (p0) {
-                            return null;
-                          },
-                        ),
+                        controller: otpControllers,
+                        onValidate: (val) {
+                          if (val.toString().isEmpty) {
+                            return 'Please Enter Pin';
+                          } else if (val.toString().length < 5) {
+                            return 'Please Enter Valid Pin';
+                          }
+                          return null;
+                        },
+                      ),
                         SizedBox(height: 10.h),
                         Row(
                           children: [
                             GestureDetector(
-                              onTap: () {
-                                onResendOTP();
-                              },
-                              child: isResendLoading
-                                  ? Padding(
-                                      padding: EdgeInsets.only(left: 10.w),
-                                      child: SizedBox(
-                                        height: 20.h,
-                                        width: 20.w,
-                                        child: CircularProgressIndicator(
-                                          color: AppColors.themeColor,
-                                        ),
-                                      ),
-                                    )
-                                  : Text(
-                                      'Resend the code',
-                                      style: CustomTextInter.light12(
-                                        AppColors.themeColor,
-                                        isUnderline: true,
+                            onTap: isTimerRunning
+                                ? null // Disable if timer is running
+                                : () {
+                                    onResendOTP();
+                                  },
+                            child: isResendLoading
+                                ? Padding(
+                                    padding: EdgeInsets.only(left: 10.w),
+                                    child: SizedBox(
+                                      height: 20.h,
+                                      width: 20.w,
+                                      child: CircularProgressIndicator(
+                                        color: AppColors.themeColor,
                                       ),
                                     ),
-                            ),
+                                  )
+                                : Text(
+                                    'Resend the code',
+                                    style: CustomTextInter.light12(
+                                      isTimerRunning
+                                          ? AppColors.textGreyColor // Disable color
+                                          : AppColors.themeColor,
+                                      isUnderline: true,
+                                    ),
+                                  ),
+                          ),
                             Spacer(),
                             Text(
-                              '00:60',
-                              style: CustomTextInter.medium12(
-                                  AppColors.blackColor),
-                            ),
+                            isTimerRunning
+                                ? '00:${otpTimerSeconds.toString().padLeft(2, '0')}'
+                                : '', // Show countdown timer
+                            style: CustomTextInter.medium12(AppColors.blackColor),
+                          ),
                           ],
                         ),
                         SizedBox(height: 50.h),

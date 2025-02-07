@@ -1,6 +1,8 @@
 // ignore_for_file: prefer_const_constructors, must_be_immutable, prefer_typing_uninitialized_variables
 
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:developer';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:work_lah/data/send_request.dart';
 import 'package:work_lah/screens/bottombar/home/job_detail/job_details.dart';
@@ -10,7 +12,6 @@ import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:work_lah/screens/bottombar/home/qr_scanner/scan_qr_screen.dart';
-
 
 class TopBarWidget extends StatelessWidget {
   final String userName;
@@ -87,8 +88,49 @@ class TopBarWidget extends StatelessWidget {
   }
 }
 
-class SearchWidget extends StatelessWidget {
-  const SearchWidget({super.key});
+class SearchWidget extends StatefulWidget {
+  final Function(List<dynamic>) onSearchResults; // Callback to pass data to parent
+  const SearchWidget({super.key, required this.onSearchResults});
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _SearchWidgetState createState() => _SearchWidgetState();
+}
+
+class _SearchWidgetState extends State<SearchWidget> {
+  TextEditingController searchController = TextEditingController();
+  Timer? debounce;
+
+  // Function to call the search API
+  void searchJobs(String query) {
+    if (query.isEmpty) {
+      widget.onSearchResults([]); // Reset results if input is cleared
+      return;
+    }
+
+    // Debounce API calls to reduce excessive requests
+    debounce?.cancel();
+    debounce = Timer(Duration(milliseconds: 500), () async {
+      try {
+        var response = await ApiProvider().getRequest(
+          apiUrl: '/api/jobs/search?jobName=$query',
+        );
+
+        if (response != null && response['success'] == true) {
+          widget.onSearchResults(response['jobs']); // Pass results to parent
+        }
+      } catch (e) {
+        log('Error searching jobs: $e');
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    debounce?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +139,6 @@ class SearchWidget extends StatelessWidget {
         Expanded(
           child: Container(
             height: 50.h,
-            width: double.infinity,
             decoration: BoxDecoration(
               color: AppColors.whiteColor,
               borderRadius: BorderRadius.circular(10),
@@ -113,17 +154,17 @@ class SearchWidget extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.only(left: 10.w, right: 10.w),
               child: TextFormField(
+                controller: searchController,
                 cursorColor: AppColors.fieldHintColor,
-                style: CustomTextInter.medium12(
-                  AppColors.blackColor,
-                ),
+                style: CustomTextInter.medium12(AppColors.blackColor),
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintText: 'Search Jobs..',
-                  hintStyle: CustomTextInter.medium12(
-                    AppColors.fieldHintColor,
-                  ),
+                  hintStyle: CustomTextInter.medium12(AppColors.fieldHintColor),
                 ),
+                onChanged: (value) {
+                  searchJobs(value);
+                },
               ),
             ),
           ),
@@ -149,6 +190,30 @@ class SearchWidget extends StatelessWidget {
 class JobWidget extends StatelessWidget {
   dynamic jobsData;
   JobWidget({super.key, this.jobsData});
+
+  String formatDate(String date) {
+    DateTime parsedDate = DateTime.parse(date);
+    return '${parsedDate.day} ${getMonthAbbreviation(parsedDate.month)}';
+  }
+
+  String getMonthAbbreviation(int month) {
+    List<String> months = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return months[month];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -330,7 +395,10 @@ class JobWidget extends StatelessWidget {
                         ),
                         SizedBox(width: 5.w),
                         Text(
-                          '9 Oct, 11 Oct, 12...',
+                          jobsData['showDates']
+                              .map((date) => formatDate(date)) // Format dates
+                              .take(3) // Show only the first 3 dates
+                              .join(', '), // Join with commas
                           style: CustomTextInter.regular12(
                             AppColors.blackColor,
                           ),
@@ -344,17 +412,19 @@ class JobWidget extends StatelessWidget {
                           child: RichText(
                             text: TextSpan(
                               children: <TextSpan>[
+                                // Fetch and display pay rate from API
                                 TextSpan(
-                                  text: '\$20/Hr ',
+                                  text:
+                                      '${jobsData['payRate']} ', // Example: "$20/Hr"
                                   style: CustomTextInter.semiBold10(
-                                    AppColors.blackColor,
-                                  ),
+                                      AppColors.blackColor),
                                 ),
+                                // Fetch and display work duration and break hours
                                 TextSpan(
-                                  text: '- (5 Hrs + 1 hrs unpaid break)',
+                                  text:
+                                      '- (${jobsData['breakHours']} Hrs ${jobsData['breakType'].toLowerCase()} break)',
                                   style: CustomTextInter.regular10(
-                                    AppColors.blackColor,
-                                  ),
+                                      AppColors.blackColor),
                                 ),
                               ],
                             ),
@@ -389,27 +459,38 @@ class JobWidget extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Row(
-                            children: List.generate(
-                              3,
-                              (index) {
-                                return Container(
-                                  height: 28.h,
-                                  width: 60.w,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(25),
-                                    border:
-                                        Border.all(color: AppColors.themeColor),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      "09:30",
-                                      style: CustomTextInter.regular14(
-                                        AppColors.themeColor,
+                            children: List<Widget>.from(
+                              jobsData['shiftsAvailable']
+                                  .take(3) // Show only the first 3 shifts
+                                  .map((shiftTime) {
+                                // Convert "HH:mm" to "hh:mm a" format
+                                List<String> timeParts = shiftTime.split(':');
+                                int hour = int.parse(timeParts[0]);
+                                int minute = int.parse(timeParts[1]);
+
+                                String formattedTime =
+                                    '${hour > 12 ? hour - 12 : hour}:${minute.toString().padLeft(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}';
+
+                                return Padding(
+                                  padding: EdgeInsets.only(right: 5.w),
+                                  child: Container(
+                                    height: 28.h,
+                                    width: 70.w, // Increased width for AM/PM
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(25),
+                                      border: Border.all(
+                                          color: AppColors.themeColor),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        formattedTime, // Display formatted time
+                                        style: CustomTextInter.regular14(
+                                            AppColors.themeColor),
                                       ),
                                     ),
                                   ),
                                 );
-                              },
+                              }).toList(), // ✅ Explicitly convert to List<Widget>
                             ),
                           ),
                         ),

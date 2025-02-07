@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'package:work_lah/data/send_request.dart';
 import 'package:work_lah/screens/bottombar/manage_job/cancelled_job/cancelled_job_details.dart';
 import 'package:work_lah/screens/bottombar/manage_job/ongoing_job/on_going_job_details.dart';
@@ -14,6 +15,7 @@ import 'package:work_lah/utility/syle_poppins.dart';
 class CommonJobWidget extends StatelessWidget {
   final bool icCompleted, isCancelled;
   final Map jobData;
+
   const CommonJobWidget({
     super.key,
     this.icCompleted = false,
@@ -23,6 +25,10 @@ class CommonJobWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Convert appliedAt date to formatted string
+    String appliedDate =
+        DateFormat('dd MMM yyyy').format(DateTime.parse(jobData['appliedAt']));
+
     return GestureDetector(
       onTap: () {
         if (icCompleted) {
@@ -61,7 +67,7 @@ class CommonJobWidget extends StatelessWidget {
                     Text(
                       jobData['subtitle'],
                       style: CustomTextPopins.medium14(AppColors.subTitColor),
-                    )
+                    ),
                   ],
                 ),
                 Spacer(),
@@ -75,8 +81,14 @@ class CommonJobWidget extends StatelessWidget {
           ),
           Stack(
             children: [
-              Image.network(
-                '${ApiProvider().baseUrl}${jobData['outletImage']}',
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.network(
+                  '${ApiProvider().baseUrl}${jobData['outletImage']}',
+                  width: double.infinity,
+                  height: commonHeight(context) * 0.25,
+                  fit: BoxFit.cover,
+                ),
               ),
               icCompleted || isCancelled
                   ? Container(
@@ -84,6 +96,8 @@ class CommonJobWidget extends StatelessWidget {
                       color: AppColors.textGreyColor.withOpacity(0.15),
                     )
                   : SizedBox(),
+
+              // Share Icon
               Positioned(
                 top: 20.h,
                 right: 20.w,
@@ -92,32 +106,83 @@ class CommonJobWidget extends StatelessWidget {
                   color: AppColors.whiteColor,
                 ),
               ),
+
+              // Completed or Cancelled Tag
               icCompleted || isCancelled
                   ? Positioned(
                       top: 20.h,
-                      right: commonWidth(context) * 0.2,
+                      right: 20.w,
                       child: Container(
-                        height: 35.h,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 12.w, vertical: 5.h),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(60),
                           color: isCancelled
                               ? AppColors.lightRedColor
                               : AppColors.lightGreenColor,
                         ),
-                        padding: EdgeInsets.only(left: 10.w, right: 10.w),
-                        child: Center(
-                          child: Text(
-                            isCancelled ? 'Cancelled' : 'Completed',
-                            style: CustomTextInter.medium14(isCancelled
+                        child: Text(
+                          isCancelled ? 'Cancelled' : 'Completed',
+                          style: CustomTextInter.medium14(
+                            isCancelled
                                 ? AppColors.redColor
-                                : AppColors.greenColor),
+                                : AppColors.greenColor,
                           ),
                         ),
                       ),
                     )
                   : SizedBox(),
+
+              // **Applied Date & Days Remaining**
               Positioned(
-                bottom: 10.h,
+                top: 20.h,
+                left: 20.w,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Applied On: $appliedDate',
+                      style: CustomTextPopins.regular10(AppColors.whiteColor),
+                    ),
+                    SizedBox(height: 3.h),
+                    Text(
+                      'Days Remaining: ${jobData['daysRemaining']} days',
+                      style: CustomTextPopins.regular10(AppColors.whiteColor),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Salary & Job Duration
+              Positioned(
+                bottom: 15.h,
+                left: 20.w,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.access_time,
+                            color: AppColors.whiteColor, size: 18.sp),
+                        SizedBox(width: 5.w),
+                        Text(
+                          'Job Duration',
+                          style:
+                              CustomTextPopins.medium14(AppColors.whiteColor),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 5.h),
+                    Text(
+                      jobData['duration'],
+                      style: CustomTextPopins.regular12(
+                          AppColors.fieldBorderColor),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                bottom: 15.h,
                 right: 20.w,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -132,36 +197,6 @@ class CommonJobWidget extends StatelessWidget {
                     ),
                     Text(
                       jobData['ratePerHour'],
-                      style: CustomTextPopins.regular12(
-                          AppColors.fieldBorderColor),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                bottom: 10.h,
-                left: 20.w,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.access_time,
-                          color: AppColors.whiteColor,
-                          size: 18.sp,
-                        ),
-                        SizedBox(width: 5.w),
-                        Text(
-                          'Job Duration',
-                          style:
-                              CustomTextPopins.medium14(AppColors.whiteColor),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 5.h),
-                    Text(
-                      jobData['duration'],
                       style: CustomTextPopins.regular12(
                           AppColors.fieldBorderColor),
                     ),

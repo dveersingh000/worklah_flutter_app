@@ -20,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool homeDataLoading = false;
   var homeJobData = [];
+  List<dynamic> filteredJobs = []; 
   UserModel? userModel;
   @override
   void initState() {
@@ -44,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         homeJobData = response['jobs'];
         homeDataLoading = false;
+        filteredJobs = response['jobs']; 
       });
     } catch (e) {
       log('Error during Res: $e');
@@ -53,6 +55,12 @@ class _HomeScreenState extends State<HomeScreen> {
         homeDataLoading = false;
       });
     }
+  }
+   // Function to update jobs based on search results
+  void updateSearchResults(List<dynamic> results) {
+    setState(() {
+      filteredJobs = results.isNotEmpty ? results : homeJobData;
+    });
   }
 
   @override
@@ -88,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Column(
                             children: [
                               SizedBox(height: commonHeight(context) * 0.03),
-                              SearchWidget(),
+                              SearchWidget(onSearchResults: updateSearchResults),
                               SizedBox(height: commonHeight(context) * 0.03),
                               ListView.separated(
                                 padding: EdgeInsets.zero,
