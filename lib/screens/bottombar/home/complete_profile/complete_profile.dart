@@ -487,7 +487,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
                           : ClipRRect(
                               borderRadius: BorderRadius.circular(50),
                               child: Image.network(
-                                '${userModel!.profilePicture}',
+                                userModel!.profilePicture,
                                 fit: BoxFit.fill,
                                 height: 75.h,
                                 width: 75.w,

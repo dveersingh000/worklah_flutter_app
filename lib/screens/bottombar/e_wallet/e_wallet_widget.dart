@@ -7,10 +7,6 @@ import 'package:work_lah/utility/image_path.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:work_lah/utility/syle_poppins.dart';
 import 'package:work_lah/screens/bottombar/profile/cashout/CashOutHomeScreen.dart';
-import 'package:work_lah/utility/display_function.dart';
-import 'package:work_lah/data/send_request.dart';
-import 'package:intl/intl.dart';
-import 'package:dotted_border/dotted_border.dart';
 
 class WalletCardWidget extends StatelessWidget {
   final String balance;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:work_lah/screens/bottombar/home/qr_scanner/MobileScannerScreen.dart';
 import 'package:work_lah/screens/bottombar/home/qr_scanner/location_permission_screen.dart';
-import 'package:work_lah/screens/bottombar/home/qr_scanner/select_job_screen.dart';
 
 class ScanQRScreen extends StatelessWidget {
   const ScanQRScreen({super.key});
@@ -14,19 +14,19 @@ class ScanQRScreen extends StatelessWidget {
         children: [
           const SizedBox(height: 50), // Spacing from the top
 
-          // Work Lah Logo at the top
+          // Work Lah Logo
           Center(
             child: Image.asset(
-              'assets/images/worklah_logo.png', // Ensure correct path for logo
+              'assets/images/worklah_logo.png',
               height: 60,
             ),
           ),
 
           const Spacer(),
 
-          // QR Code Icon
+          // QR Icon Image (This is shown initially)
           Image.asset(
-            'assets/images/qr_icon.png', // Ensure correct path for QR image
+            'assets/images/qr_icon.png',
             height: 150,
             width: 150,
             color: Colors.white,
@@ -52,10 +52,9 @@ class ScanQRScreen extends StatelessWidget {
                 );
 
                 if (granted) {
-                  // Navigate to job selection only if permission is granted
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SelectJobScreen()),
+                    MaterialPageRoute(builder: (context) => const MobileScannerScreen()),
                   );
                 }
               },

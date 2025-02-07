@@ -11,6 +11,7 @@ import 'package:work_lah/utility/style_inter.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:work_lah/screens/bottombar/home/qr_scanner/scan_qr_screen.dart';
 
+
 class TopBarWidget extends StatelessWidget {
   final String userName;
   final String imgPath;
@@ -62,7 +63,7 @@ class TopBarWidget extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.qr_code_scanner),
+            icon: Icon(Icons.mobile_scanner),
             onPressed: () {
               Navigator.push(
                 context,
