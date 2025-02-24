@@ -38,12 +38,12 @@ class _AvailableTabViewState extends State<AvailableTabView> {
     {
       'icon': Icons.access_time_outlined,
       'title': 'Job Duration',
-      'subTitle': '4 Hrs',
+      'subTitle': '1 Hrs',
     },
     {
       'icon': Icons.calendar_month_outlined,
       'title': 'Job Dates',
-      'subTitle': '4, Sat | 6, Mon',
+      'subTitle': '2, Sat | 6, Mon',
     },
     {
       'icon': Icons.local_cafe_outlined,
@@ -75,6 +75,10 @@ class _AvailableTabViewState extends State<AvailableTabView> {
     super.initState();
     selectedTim = List.filled(2, null);
     getUserLocalData();
+    debugPrint("AvailableTabView Data: ${widget.data}");
+  }
+  void printData() {
+    print("AvailableTabView Data: ${widget.data}");
   }
 
   Future<void> getUserLocalData() async {
@@ -86,6 +90,7 @@ class _AvailableTabViewState extends State<AvailableTabView> {
 
   @override
   Widget build(BuildContext context) {
+    var employerData = widget.data['employer'];
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -129,7 +134,7 @@ class _AvailableTabViewState extends State<AvailableTabView> {
                     child: ListView.builder(
                       controller: scrollController,
                       padding: EdgeInsets.zero,
-                      itemCount: widget.data['shiftsAvailable'].length,
+                      // itemCount: widget.data['shiftsAvailable'].length,
                       physics: BouncingScrollPhysics(),
                       itemBuilder: (context, index) {
                         return availableVaccancyWidget(
@@ -243,28 +248,28 @@ class _AvailableTabViewState extends State<AvailableTabView> {
                           ],
                         ),
                       ),
-                SizedBox(height: 20.h),
-                JobRequirements(
-                  jobRequire: widget.whereFrom == 'OnGoingJobDetails' ||
-                          widget.whereFrom == 'CancelledJobDetails'
-                      ? widget.data['jobRequirements']
-                      : widget.data['requirements']['jobRequirements'],
-                ),
+                // SizedBox(height: 20.h),
+                // JobRequirements(
+                //   jobRequire: widget.whereFrom == 'OnGoingJobDetails' ||
+                //           widget.whereFrom == 'CancelledJobDetails'
+                //       ? widget.data['jobRequirements']
+                //       : widget.data['requirements']['jobRequirements'],
+                // ),
                 SizedBox(height: 30.h),
                 LocationWidget(
                   locationData: widget.data['locationCoordinates'],
                 ),
                 SizedBox(height: 20.h),
                 EmployerWidget(
-                  employerDetails: employerDetails,
-                  companyName: widget.data['employer']['name'].toString(),
-                  img: widget.data['employer']['companyLogo'].toString(),
-                  jobId: widget.whereFrom == 'OnGoingJobDetails' ||
-                          widget.whereFrom == 'CancelledJobDetails'
-                      ? widget.data['applicationId'].toString()
-                      : widget.data['_id'].toString(),
-                  jobLocation: widget.data['location'].toString(),
-                ),
+            employerName: employerData['name'].toString(),
+            employerLogo: employerData['logo'].toString(),
+            jobId: widget.data['id'].toString(),
+            jobCategory: widget.data['jobCategory'].toString(),
+            jobLocation: widget.data['location'].toString(),
+            jobDates: widget.data['jobDates']
+                .map((date) => DateFormat('d MMM').format(DateTime.parse(date['date'])))
+                .join(' | '), // Convert job dates to readable format
+          ),
                 SizedBox(height: 20.h),
                 if (widget.whereFrom == 'OnGoingJobDetails') ...[
                   OnGoingJobAlert(),

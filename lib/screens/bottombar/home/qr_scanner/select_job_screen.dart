@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:work_lah/screens/bottombar/home/qr_scanner/select_shift_screen.dart';
 
 class SelectJobScreen extends StatefulWidget {
-  const SelectJobScreen({super.key});
+  const SelectJobScreen({super.key, required jobData});
 
   @override
   // ignore: library_private_types_in_public_api

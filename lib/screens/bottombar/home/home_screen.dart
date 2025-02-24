@@ -20,8 +20,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool homeDataLoading = false;
   var homeJobData = [];
-  List<dynamic> filteredJobs = []; 
+  List<dynamic> filteredJobs = [];
   UserModel? userModel;
+  String selectedEmployer = "";
+  String selectedDate = "";
   @override
   void initState() {
     super.initState();
@@ -45,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         homeJobData = response['jobs'];
         homeDataLoading = false;
-        filteredJobs = response['jobs']; 
+        filteredJobs = response['jobs'];
       });
     } catch (e) {
       log('Error during Res: $e');
@@ -56,7 +58,8 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
   }
-   // Function to update jobs based on search results
+
+  // Function to update jobs based on search results
   void updateSearchResults(List<dynamic> results) {
     setState(() {
       filteredJobs = results.isNotEmpty ? results : homeJobData;
@@ -64,60 +67,80 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.whiteColor,
-      body: Column(
-        children: [
-          SizedBox(height: commonHeight(context) * 0.05),
-          homeDataLoading
-              ? SizedBox()
-              : TopBarWidget(
-                  userName: userModel!.fullName,
-                  imgPath: userModel!.profilePicture,
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: AppColors.whiteColor, // Keep the main background white
+    body: Column(
+      children: [
+        SizedBox(height: commonHeight(context) * 0.05),
+        homeDataLoading
+            ? SizedBox()
+            : TopBarWidget(
+                userName: userModel!.fullName,
+                imgPath: userModel!.profilePicture,
+              ),
+        homeDataLoading
+            ? Expanded(
+                child: Center(
+                  child: CircularProgressIndicator(color: AppColors.themeColor),
                 ),
-          homeDataLoading
-              ? Expanded(
-                  child: Center(
-                    child:
-                        CircularProgressIndicator(color: AppColors.themeColor),
-                  ),
-                )
-              : homeJobData.isEmpty
-                  ? Expanded(
-                      child: Center(
-                        child: Text('No Jobs Found'),
-                      ),
-                    )
-                  : Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(left: 10.w, right: 10.w),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              SizedBox(height: commonHeight(context) * 0.03),
-                              SearchWidget(onSearchResults: updateSearchResults),
-                              SizedBox(height: commonHeight(context) * 0.03),
-                              ListView.separated(
-                                padding: EdgeInsets.zero,
-                                separatorBuilder: (context, index) =>
-                                    SizedBox(height: 20.h),
-                                itemCount: homeJobData.length,
-                                shrinkWrap: true,
-                                physics: BouncingScrollPhysics(),
-                                itemBuilder: (context, index) {
-                                  return JobWidget(
-                                    jobsData: homeJobData[index],
-                                  );
-                                },
-                              )
-                            ],
+              )
+            : homeJobData.isEmpty
+                ? Expanded(
+                    child: Center(
+                      child: Text('No Jobs Found'),
+                    ),
+                  )
+                : Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          SizedBox(height: commonHeight(context) * 0.03),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 15.w), // ✅ Add horizontal padding
+                            child: SearchWidget(onSearchResults: updateSearchResults),
                           ),
-                        ),
+                          SizedBox(height: 15.h),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 15.w), // ✅ Add horizontal padding
+                            child: DateSelectionWidget(
+                                onDateSelected: (selectedDate) {
+                              // TODO: Handle selected date
+                            }),
+                          ),
+                          SizedBox(height: commonHeight(context) * 0.03),
+
+                          // Blue Background Section for Jobs
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 10.w, vertical: 20.h),
+                            decoration: BoxDecoration(
+                              color: Color(0xFFD6E9FF), // Light Blue Background
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(30.r),
+                              ),
+                            ),
+                            child: ListView.separated(
+                              padding: EdgeInsets.zero,
+                              separatorBuilder: (context, index) =>
+                                  SizedBox(height: 20.h),
+                              itemCount: filteredJobs.length,
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemBuilder: (context, index) {
+                                return JobWidget(
+                                  jobData: filteredJobs[index],
+                                );
+                              },
+                            ),
+                          )
+                        ],
                       ),
                     ),
-        ],
-      ),
-    );
-  }
+                  ),
+      ],
+    ),
+  );
+}
 }

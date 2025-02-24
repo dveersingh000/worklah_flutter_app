@@ -140,19 +140,36 @@ class LocationWidget extends StatelessWidget {
 }
 
 class EmployerWidget extends StatelessWidget {
-  var employerDetails;
-  final String? companyName;
-  final String? img;
-  final String? jobId;
-  final String? jobLocation;
-  EmployerWidget({
+  final String employerName;
+  final String employerLogo;
+  final String jobId;
+  final String jobCategory;
+  final String jobLocation;
+  final String jobDates;
+
+  const EmployerWidget({
     super.key,
-    required this.employerDetails,
-    this.companyName,
-    this.img,
-    this.jobId,
-    this.jobLocation,
+    required this.employerName,
+    required this.employerLogo,
+    required this.jobId,
+    required this.jobCategory,
+    required this.jobLocation,
+    required this.jobDates,
   });
+  // Format Job ID to show only last 6 characters
+  String getFormattedJobId(String jobId) {
+    return 'ID: ${jobId.substring(jobId.length - 6).toUpperCase()}';
+  }
+
+  // Get Employer Logo (Handles missing base URL or fallback)
+  String getEmployerLogo(String? logoUrl) {
+    if (logoUrl == null || logoUrl.isEmpty) {
+      return 'assets/images/companyLogo.png'; // Default logo
+    }
+    // Ensure a complete URL
+    const String baseUrl = "http://localhost:3000"; // Replace with actual base URL
+    return logoUrl.startsWith("http") ? logoUrl : "$baseUrl$logoUrl";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -174,40 +191,34 @@ class EmployerWidget extends StatelessWidget {
         SizedBox(height: 10.h),
         Row(
           children: [
-            img!.isEmpty
-                ? Image.asset(
-                    ImagePath.serviceLogoIMG,
-                    fit: BoxFit.fill,
-                  )
-                : Image.network(
-                    '$img',
-                    fit: BoxFit.fill,
-                  ),
+            ClipRRect(
+            child: Image.network(
+                getEmployerLogo(employerLogo),
+                width: 50.w,
+                height: 50.h,)
+            ),
             SizedBox(width: 10.w),
-            Text(
-              companyName ?? 'Right Service PTE. LTD.',
-              style: CustomTextInter.light20(AppColors.blackColor),
+            Expanded(
+              child: Text(
+                employerName,
+                style: CustomTextInter.medium18(AppColors.blackColor),
+              ),
             ),
           ],
         ),
+
         Divider(),
         SizedBox(height: 5.h),
-        commonRowWidget(Icons.tag, 'Job ID', jobId ?? 'ID180432', context),
-        SizedBox(height: 20.h),
-        commonRowWidget(
-            Icons.access_time_outlined, 'Job Duration', '4 Hrs', context),
+        commonRowWidget(Icons.tag, 'Job ID', getFormattedJobId(jobId), context),
         SizedBox(height: 20.h),
         commonRowWidget(Icons.calendar_month_outlined, 'Job Dates',
-            '4, Sat | 6, Mon', context),
-        SizedBox(height: 20.h),
-        commonRowWidget(Icons.local_cafe_outlined, 'Break Duration',
-            '1 Hrs (Unpaid Break)', context),
+            jobDates, context),
         SizedBox(height: 20.h),
         commonRowWidget(
-            Icons.business_outlined, 'Job Category', 'Cleaning', context),
+            Icons.business_outlined, 'Job Category', jobCategory, context),
         SizedBox(height: 20.h),
         commonRowWidget(Icons.location_on_outlined, 'Location',
-            jobLocation ?? '101 Thomson Rd, Singapore 307591', context),
+            jobLocation, context),
         SizedBox(height: 5.h),
       ],
     );

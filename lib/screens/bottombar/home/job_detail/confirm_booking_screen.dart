@@ -81,15 +81,15 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
             ),
             JobIMGWidget(
               posterIMG: widget.jobData['jobIcon'].toString(),
-              smallIMG: widget.jobData['subtitleIcon'].toString(),
+              // smallIMG: widget.jobData['subtitleIcon'].toString(),
             ),
             Padding(
               padding: EdgeInsets.only(right: 20.w, top: 10.h, left: 20.w),
               child: Column(
                 children: [
-                  JobSalary(
-                    salary: widget.jobData['salary'].toString(),
-                  ),
+                  // JobSalary(
+                  //   salary: widget.jobData['salary'].toString(),
+                  // ),
                   JobScopsWidget(
                     jobScropDesc: [
                       'Station at tray collection section',

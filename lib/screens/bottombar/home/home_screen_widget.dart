@@ -11,21 +11,102 @@ import 'package:work_lah/utility/colors.dart';
 import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import 'package:work_lah/screens/bottombar/home/qr_scanner/scan_qr_screen.dart';
+import 'package:work_lah/utility/image_path.dart';
+// import 'package:work_lah/screens/bottombar/home/qr_scanner/scan_qr_screen.dart';
 
-class TopBarWidget extends StatelessWidget {
+class TopBarWidget extends StatefulWidget {
   final String userName;
   final String imgPath;
-  const TopBarWidget(
-      {super.key, required this.userName, required this.imgPath});
+
+  const TopBarWidget({super.key, required this.userName, required this.imgPath});
+
+  @override
+  _TopBarWidgetState createState() => _TopBarWidgetState();
+}
+
+class _TopBarWidgetState extends State<TopBarWidget> {
+  final GlobalKey _menuKey = GlobalKey();
+  OverlayEntry? _overlayEntry;
+
+  void _toggleMenu() {
+    if (_overlayEntry == null) {
+      _overlayEntry = _createOverlayEntry();
+      Overlay.of(context).insert(_overlayEntry!);
+    } else {
+      _overlayEntry!.remove();
+      _overlayEntry = null;
+    }
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    RenderBox renderBox = _menuKey.currentContext!.findRenderObject() as RenderBox;
+    var offset = renderBox.localToGlobal(Offset.zero);
+
+    return OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          // **Tap outside to close menu**
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () => _toggleMenu(),
+              behavior: HitTestBehavior.translucent,
+            ),
+          ),
+
+          // **Dropdown Menu**
+          Positioned(
+            top: offset.dy + renderBox.size.height,
+            right: 10.w,
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(10.r),
+              color: Colors.white,
+              child: Container(
+                width: 150.w,
+                padding: EdgeInsets.symmetric(vertical: 5.h),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.logout, color: AppColors.blackColor),
+                      title: Text(
+                        'Logout',
+                        style: CustomTextInter.medium14(AppColors.blackColor),
+                      ),
+                      onTap: () {
+                        // ✅ Handle Logout
+                        _toggleMenu();
+                        log('User logged out');
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final greeting = getGreeting();
     return Padding(
-      padding: EdgeInsets.only(left: 10.w, right: 10.w),
+      padding: EdgeInsets.symmetric(horizontal: 10.w),
       child: Row(
         children: [
+          // **Profile Image with Border**
           Stack(
             alignment: Alignment.center,
             children: [
@@ -41,13 +122,15 @@ class TopBarWidget extends StatelessWidget {
                 height: 45.h,
                 width: 45.w,
                 child: Image.network(
-                  imgPath,
+                  widget.imgPath,
                   fit: BoxFit.fill,
                 ),
               ),
             ],
           ),
           SizedBox(width: 10.w),
+
+          // **Greeting & User Name**
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,31 +140,31 @@ class TopBarWidget extends StatelessWidget {
                   style: CustomTextInter.medium12(AppColors.fieldHintColor),
                 ),
                 Text(
-                  userName,
+                  widget.userName,
                   style: CustomTextInter.bold20(AppColors.blackColor),
                 ),
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.mobile_scanner),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ScanQRScreen()),
-              );
-            },
-          ),
+
+          // **Notifications Icon**
           GestureDetector(
-              onTap: () {
-                moveToNext(context, NotificationScreen());
-              },
-              child: Icon(
-                Icons.notifications_outlined,
-                color: AppColors.themeColor,
-              )),
+            onTap: () {
+              moveToNext(context, NotificationScreen());
+            },
+            child: Icon(
+              Icons.notifications_outlined,
+              color: AppColors.themeColor,
+            ),
+          ),
           SizedBox(width: 10.w),
-          Icon(Icons.menu_outlined),
+
+          // **Menu Icon**
+          GestureDetector(
+            key: _menuKey,
+            onTap: _toggleMenu,
+            child: Icon(Icons.menu_outlined),
+          ),
         ],
       ),
     );
@@ -89,24 +172,33 @@ class TopBarWidget extends StatelessWidget {
 }
 
 class SearchWidget extends StatefulWidget {
-  final Function(List<dynamic>) onSearchResults; // Callback to pass data to parent
+  final Function(List<dynamic>)
+      onSearchResults; // Callback to pass data to parent
   const SearchWidget({super.key, required this.onSearchResults});
 
   @override
-  // ignore: library_private_types_in_public_api
   _SearchWidgetState createState() => _SearchWidgetState();
 }
 
 class _SearchWidgetState extends State<SearchWidget> {
   TextEditingController searchController = TextEditingController();
   Timer? debounce;
+  bool isSearching = false;  // ✅ Indicates when the search is loading
+  bool showNoJobsMessage = false; // ✅ Controls "No Jobs Found" message
 
   // Function to call the search API
   void searchJobs(String query) {
     if (query.isEmpty) {
-      widget.onSearchResults([]); // Reset results if input is cleared
-      return;
-    }
+    setState(() {
+      widget.onSearchResults([]); // ✅ Reset to full list
+      showNoJobsMessage = false; // ✅ Hide "No Jobs Found" message
+    });
+    return;
+  }
+    setState(() {
+    isSearching = true; // ✅ Show loading indicator
+    showNoJobsMessage = false; // ✅ Hide "No Jobs Found" while searching
+  });
 
     // Debounce API calls to reduce excessive requests
     debounce?.cancel();
@@ -115,14 +207,32 @@ class _SearchWidgetState extends State<SearchWidget> {
         var response = await ApiProvider().getRequest(
           apiUrl: '/api/jobs/search?jobName=$query',
         );
+        setState(() {
+        isSearching = false; // ✅ Hide loading indicator
+      });
 
         if (response != null && response['success'] == true) {
-          widget.onSearchResults(response['jobs']); // Pass results to parent
-        }
-      } catch (e) {
-        log('Error searching jobs: $e');
+        List<dynamic> searchResults = response['jobs'];
+        widget.onSearchResults(searchResults);
+
+        setState(() {
+          showNoJobsMessage = searchResults.isEmpty; // ✅ Show/Hide message
+        });
+      } else {
+        setState(() {
+          widget.onSearchResults([]);
+          showNoJobsMessage = true; // ✅ Show "No Jobs Found"
+        });
       }
-    });
+      } catch (e) {
+      log('Error searching jobs: $e');
+      setState(() {
+        isSearching = false;
+        widget.onSearchResults([]);
+        showNoJobsMessage = true;
+      });
+    }
+  });
   }
 
   @override
@@ -162,6 +272,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                   hintText: 'Search Jobs..',
                   hintStyle: CustomTextInter.medium12(AppColors.fieldHintColor),
                 ),
+                
                 onChanged: (value) {
                   searchJobs(value);
                 },
@@ -169,17 +280,172 @@ class _SearchWidgetState extends State<SearchWidget> {
             ),
           ),
         ),
-        SizedBox(width: 20.w),
-        Container(
-          height: 50.h,
-          width: 50.w,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: AppColors.themeColor,
+        SizedBox(width: 10.w),
+
+        // 🔍 Search Button
+        GestureDetector(
+          onTap: () {
+            searchJobs(searchController.text);
+          },
+          child: Container(
+            height: 50.h,
+            width: 50.w,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: AppColors.themeColor,
+            ),
+            child: Icon(Icons.search, color: AppColors.whiteColor),
           ),
-          child: Icon(
-            Icons.search,
-            color: AppColors.whiteColor,
+        ),
+        SizedBox(width: 10.w),
+
+        // ⚙️ Filter Button
+        GestureDetector(
+          onTap: () {
+            // TODO: Implement filter logic (show modal or navigate to filter screen)
+          },
+          child: Container(
+            height: 50.h,
+            width: 50.w,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: AppColors.blackColor,
+            ),
+            child: Icon(Icons.tune, color: AppColors.whiteColor),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+
+class DateSelectionWidget extends StatefulWidget {
+  final Function(String) onDateSelected;
+  const DateSelectionWidget({super.key, required this.onDateSelected});
+
+  @override
+  _DateSelectionWidgetState createState() => _DateSelectionWidgetState();
+}
+
+class _DateSelectionWidgetState extends State<DateSelectionWidget> {
+  DateTime selectedDate = DateTime.now();
+
+  List<DateTime> getNextSevenDays() {
+    return List.generate(
+        7, (index) => DateTime.now().add(Duration(days: index)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<DateTime> dates = getNextSevenDays();
+
+    return Row(
+      children: [
+        // 📅 "Go to Date" Button (Properly Centered)
+        GestureDetector(
+          onTap: () async {
+            DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: selectedDate,
+              firstDate: DateTime.now().subtract(Duration(days: 30)),
+              lastDate: DateTime.now().add(Duration(days: 90)),
+            );
+            if (picked != null) {
+              setState(() {
+                selectedDate = picked;
+              });
+              widget.onDateSelected(picked.toString());
+            }
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 14.w),
+            decoration: BoxDecoration(
+              color: AppColors.whiteColor,
+              borderRadius: BorderRadius.circular(20.r),
+              border: Border.all(color: AppColors.fieldHintColor),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.calendar_today,
+                    size: 18.sp, color: AppColors.blackColor),
+                SizedBox(height: 3.h),
+                Text("Go to",
+                    style: CustomTextInter.medium10(AppColors.blackColor)),
+                Text("Date",
+                    style: CustomTextInter.medium10(AppColors.blackColor)),
+              ],
+            ),
+          ),
+        ),
+
+        // 🔹 Vertical Divider (Properly Aligned)
+        Container(
+          width: 1.5.w,
+          height: 50.h,
+          color: AppColors.fieldHintColor,
+          margin: EdgeInsets.symmetric(horizontal: 8.w),
+        ),
+
+        // 📆 Scrollable Date List (Pill Shapes)
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: dates.map((date) {
+                bool isSelected = selectedDate.day == date.day;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedDate = date;
+                    });
+                    widget.onDateSelected(date.toString());
+                  },
+                  child: Container(
+                    width: 55.w, // More pill-like
+                    padding: EdgeInsets.symmetric(vertical: 12.h),
+                    margin: EdgeInsets.symmetric(horizontal: 5.w),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.themeColor
+                          : Color(0xFFE6F0FF), // Light blue for unselected
+                      borderRadius: BorderRadius.circular(30.r), // More rounded
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          [
+                            "Sun",
+                            "Mon",
+                            "Tue",
+                            "Wed",
+                            "Thu",
+                            "Fri",
+                            "Sat"
+                          ][date.weekday % 7],
+                          style: CustomTextInter.medium12(
+                            isSelected
+                                ? AppColors.whiteColor
+                                : AppColors.blackColor,
+                          ),
+                        ),
+                        SizedBox(height: 3.h), // Space between text
+                        Text(
+                          date.day.toString(),
+                          style: CustomTextInter.bold18(
+                            isSelected
+                                ? AppColors.whiteColor
+                                : AppColors.blackColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ),
       ],
@@ -188,365 +454,215 @@ class _SearchWidgetState extends State<SearchWidget> {
 }
 
 class JobWidget extends StatelessWidget {
-  dynamic jobsData;
-  JobWidget({super.key, this.jobsData});
-
-  String formatDate(String date) {
-    DateTime parsedDate = DateTime.parse(date);
-    return '${parsedDate.day} ${getMonthAbbreviation(parsedDate.month)}';
-  }
-
-  String getMonthAbbreviation(int month) {
-    List<String> months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return months[month];
-  }
+  final dynamic jobData;
+  JobWidget({super.key, required this.jobData});
 
   @override
   Widget build(BuildContext context) {
-    DateTime postDate = DateTime.parse(jobsData['postedDate']);
-    String timeAgo = timeago.format(postDate);
     return Container(
-      height: commonHeight(context) * 0.55,
-      width: double.infinity,
+      margin: EdgeInsets.symmetric(vertical: 10.h, horizontal: 15.w),
+      padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(17),
-        color: AppColors.fieldBorderColor,
+        borderRadius: BorderRadius.circular(15.r),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 5,
+            spreadRadius: 1,
+            offset: Offset(0, 2),
+            color: Colors.black.withOpacity(0.1),
+          ),
+        ],
       ),
-      child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(17),
-              topRight: Radius.circular(17),
-            ),
-            child: Image.network(
-              "${ApiProvider().baseUrl}${jobsData['outlet']['outletImage']}",
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: commonHeight(context) * 0.3,
-            ),
-          ),
-          Positioned(
-            top: 10,
-            left: 20,
-            child: Container(
-              height: 35,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(70),
-                color: AppColors.chipColor,
+          /// **Outlet Image & Badge**
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(15.r),
+                  topRight: Radius.circular(15.r),
+                ),
+                child: Image.network(
+                  jobData['outletImage'] ?? "",
+                  height: 130.h,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    // Use local image if network fails
+                    return Image.asset(
+                      ImagePath.outletImage, // Use the constant from ImagePath
+                      height: 130.h,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    );
+                  },
+                ),
               ),
-              padding: EdgeInsets.only(left: 10.w, right: 10.w),
-              child: Center(
-                child: Text(
-                  timeAgo,
-                  style: CustomTextInter.regular12(
-                    AppColors.blackColor,
+              Positioned(
+                top: 10.h,
+                left: 10.w,
+                child: Container(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.r),
+                    color: Colors.white,
+                  ),
+                  child: Text(
+                    jobData['outlet']['outletName'] ?? 'Unknown',
+                    style: CustomTextInter.medium12(AppColors.blackColor),
                   ),
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            top: 18,
-            right: 20,
-            child: Container(
-              height: 25,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(25),
-                color: AppColors.whiteColor,
-              ),
-              padding: EdgeInsets.only(left: 10.w, right: 10.w),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.favorite,
-                    color: AppColors.redColor,
-                    size: 15.sp,
+              Positioned(
+                top: 10.h,
+                right: 10.w,
+                child: Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors
+                        .white, // ✅ White background for better visibility
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 5,
+                        spreadRadius: 1,
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 5.w),
-                  Text(
-                    '${jobsData['popularity']}',
-                    style: CustomTextInter.light10(
-                      AppColors.blackColor,
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            top: commonHeight(context) * 0.15,
-            left: 20,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(25),
-                color: AppColors.whiteColor,
-              ),
-              padding: EdgeInsets.only(
-                left: 15.w,
-                right: 15.w,
-                top: 9.h,
-                bottom: 9.h,
-              ),
-              child: Center(
-                child: Text(
-                  'Kaanha',
-                  style: CustomTextInter.light16(
-                    AppColors.blackColor,
+                  child: Icon(
+                    Icons.bookmark_border,
+                    color: Colors.black, // ✅ Black icon for contrast
+                    size: 22.sp,
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(17),
-                color: AppColors.whiteColor,
-                boxShadow: [
-                  BoxShadow(
-                    blurRadius: 4,
-                    offset: Offset(0, 3),
-                    spreadRadius: 0,
-                    color: AppColors.blackColor.withOpacity(0.1),
-                  ),
-                ],
-                border: Border.all(
-                  color: AppColors.borderColor,
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+
+          /// **Job Details**
+          Padding(
+            padding: EdgeInsets.all(12.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /// **Job Title & Wage**
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            jobsData['jobName'].toString(),
-                            style: CustomTextInter.semiBold16(
-                              AppColors.blackColor,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10.w),
-                        Icon(
-                          Icons.location_pin,
-                          size: 15.sp,
-                        ),
-                        SizedBox(width: 5.w),
-                        Expanded(
-                          child: Text(
-                            jobsData['location'].toString(),
-                            style:
-                                CustomTextInter.regular12(AppColors.blackColor),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 20.h),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: RichText(
-                            text: TextSpan(
-                              children: <TextSpan>[
-                                TextSpan(
-                                  text: 'Potential total wages: ',
-                                  style: CustomTextInter.semiBold12(
-                                    AppColors.primaryGreyColor,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text:
-                                      '\$${jobsData['totalPotentialWages'].toString()}',
-                                  style: CustomTextInter.semiBold16(
-                                    AppColors.greenColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Icon(
-                          Icons.calendar_month,
-                          size: 15.sp,
-                        ),
-                        SizedBox(width: 5.w),
-                        Text(
-                          jobsData['showDates']
-                              .map((date) => formatDate(date)) // Format dates
-                              .take(3) // Show only the first 3 dates
-                              .join(', '), // Join with commas
-                          style: CustomTextInter.regular12(
-                            AppColors.blackColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 10.h),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: RichText(
-                            text: TextSpan(
-                              children: <TextSpan>[
-                                // Fetch and display pay rate from API
-                                TextSpan(
-                                  text:
-                                      '${jobsData['payRate']} ', // Example: "$20/Hr"
-                                  style: CustomTextInter.semiBold10(
-                                      AppColors.blackColor),
-                                ),
-                                // Fetch and display work duration and break hours
-                                TextSpan(
-                                  text:
-                                      '- (${jobsData['breakHours']} Hrs ${jobsData['breakType'].toLowerCase()} break)',
-                                  style: CustomTextInter.regular10(
-                                      AppColors.blackColor),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            moveToNext(
-                              context,
-                              JobDetailsScreen(jobID: jobsData['_id']),
-                            );
-                          },
-                          child: Text(
-                            'show dates',
-                            style: CustomTextInter.regular12(
-                              AppColors.blackColor,
-                              isUnderline: true,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 20.h),
-                    Text(
-                      'Shifts available:',
-                      style: CustomTextInter.semiBold12(
-                        AppColors.primaryGreyColor,
+                    Expanded(
+                      child: Text(
+                        jobData['jobName'] ?? 'Job Title',
+                        style: CustomTextInter.bold16(AppColors.blackColor),
                       ),
                     ),
-                    SizedBox(height: 10.h),
-                    Row(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Expanded(
-                          child: Row(
-                            children: List<Widget>.from(
-                              jobsData['shiftsAvailable']
-                                  .take(3) // Show only the first 3 shifts
-                                  .map((shiftTime) {
-                                // Convert "HH:mm" to "hh:mm a" format
-                                List<String> timeParts = shiftTime.split(':');
-                                int hour = int.parse(timeParts[0]);
-                                int minute = int.parse(timeParts[1]);
-
-                                String formattedTime =
-                                    '${hour > 12 ? hour - 12 : hour}:${minute.toString().padLeft(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}';
-
-                                return Padding(
-                                  padding: EdgeInsets.only(right: 5.w),
-                                  child: Container(
-                                    height: 28.h,
-                                    width: 70.w, // Increased width for AM/PM
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(25),
-                                      border: Border.all(
-                                          color: AppColors.themeColor),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        formattedTime, // Display formatted time
-                                        style: CustomTextInter.regular14(
-                                            AppColors.themeColor),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }).toList(), // ✅ Explicitly convert to List<Widget>
-                            ),
-                          ),
+                        Text(
+                          'Est. Wage:',
+                          style: CustomTextInter.medium12(Colors.grey),
                         ),
                         Container(
-                          height: 28.h,
-                          padding: EdgeInsets.only(left: 10.w, right: 10.w),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 10.w, vertical: 5.h),
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(25),
-                            color: jobsData['jobStatus'].toString() == 'Active'
-                                ? AppColors.greenColor.withOpacity(0.1)
-                                : AppColors.redColor.withOpacity(0.1),
+                            color: Colors.yellow[700],
+                            borderRadius: BorderRadius.circular(8.r),
                           ),
-                          child: Center(
-                            child: Text(
-                              jobsData['jobStatus'].toString(),
-                              style: CustomTextInter.regular10(
-                                jobsData['jobStatus'].toString() == 'Active'
-                                    ? AppColors.greenColor
-                                    : AppColors.redColor,
-                              ),
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: '\$${jobData['estimatedWage'] ?? '0'}',
+                                  style: CustomTextInter.bold14(
+                                      AppColors.blackColor),
+                                ),
+                                TextSpan(
+                                  text: ' (${jobData['payRatePerHour']})',
+                                  style: CustomTextInter.medium12(
+                                      AppColors.blackColor),
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ],
-                    ),
-                    SizedBox(height: 10.h),
-                    GestureDetector(
-                      onTap: () {
-                        moveToNext(
-                          context,
-                          JobDetailsScreen(jobID: jobsData['_id']),
-                        );
-                      },
-                      child: Container(
-                        height: 44.h,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: AppColors.themeColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: AppColors.themeColor,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            'Apply',
-                            style:
-                                CustomTextInter.regular16(AppColors.themeColor),
-                          ),
-                        ),
-                      ),
                     ),
                   ],
                 ),
-              ),
+                SizedBox(height: 8.h),
+
+                /// **Location**
+                Row(
+                  children: [
+                    Icon(Icons.location_on, color: Colors.blue, size: 18.sp),
+                    SizedBox(width: 5.w),
+                    Text(
+                      jobData['shortAddress'] ??
+                          jobData['location'] ??
+                          'Location',
+                      style: CustomTextInter.medium12(AppColors.blackColor),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 5.h),
+
+                /// **Outlet Timing**
+                Text(
+                  'Outlet timing: ${jobData['outletTiming']}',
+                  style: CustomTextInter.medium12(AppColors.blackColor),
+                ),
+                SizedBox(height: 5.h),
+
+                /// **Slot Label (Trending, Limited Slots, etc.)**
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: Colors.orange[400],
+                    borderRadius: BorderRadius.circular(5.r),
+                  ),
+                  child: Text(
+                    jobData['slotLabel'] ?? 'New',
+                    style: CustomTextInter.bold12(AppColors.whiteColor),
+                  ),
+                ),
+                SizedBox(height: 12.h),
+
+                /// **Apply Button**
+                SizedBox(
+  width: double.infinity,
+  child: ElevatedButton(
+    onPressed: () {
+      /// ✅ Navigate to JobDetailsScreen and pass jobID
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => JobDetailsScreen(
+            jobID: jobData['_id'], // ✅ Ensure jobData['_id'] exists
+          ),
+        ),
+      );
+    },
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.themeColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.r),
+      ),
+      padding: EdgeInsets.symmetric(vertical: 15.h),
+    ),
+    child: Text(
+      'Apply',
+      style: CustomTextInter.bold16(AppColors.whiteColor),
+    ),
+  ),
+),
+              ],
             ),
           ),
         ],

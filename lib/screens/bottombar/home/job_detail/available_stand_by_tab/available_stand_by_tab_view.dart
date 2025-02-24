@@ -218,11 +218,11 @@ class _AvailableStandByTabViewState extends State<AvailableStandByTabView> {
                 SizedBox(height: 30.h),
                 LocationWidget(locationData: {}),
                 SizedBox(height: 20.h),
-                EmployerWidget(
-                  employerDetails: employerDetails,
-                  companyName: '',
-                  img: '',
-                ),
+                // EmployerWidget(
+                //   employerDetails: employerDetails,
+                //   companyName: '',
+                //   img: '',
+                // ),
                 SizedBox(height: 20.h),
                 CompleteYourProfile(
                   jobData: {},

@@ -5,8 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:work_lah/data/send_request.dart';
 import 'package:work_lah/screens/bottombar/e_wallet/e_wallet_widget.dart';
 import 'package:work_lah/utility/colors.dart';
-import 'package:work_lah/utility/custom_appbar.dart';
 import 'package:work_lah/utility/display_function.dart';
+import 'package:work_lah/utility/top_app_bar.dart';// Import the reusable TopAppBar
 
 class EWalletScreen extends StatefulWidget {
   const EWalletScreen({super.key});
@@ -55,11 +55,10 @@ class _EWalletScreenState extends State<EWalletScreen> {
         child: Column(
           children: [
             SizedBox(height: commonHeight(context) * 0.05),
-            CustomAppbar(
-              title: 'E - Wallet',
-              isAction: true,
-              isLeading: false,
-            ),
+
+            // ✅ Use the reusable TopAppBar
+            TopAppBar(title: 'E - Wallet'),
+
             SizedBox(height: commonHeight(context) * 0.02),
 
             isLoading

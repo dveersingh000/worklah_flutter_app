@@ -11,6 +11,8 @@ import 'package:work_lah/utility/dashed_divider.dart';
 import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/image_path.dart';
 import 'package:work_lah/utility/style_inter.dart';
+import 'package:work_lah/utility/top_app_bar.dart';
+import 'package:work_lah/screens/bottombar/home/complete_profile/complete_profile.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool profileCompleted;
@@ -49,6 +51,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     }
   }
+  void navigateToCompleteProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CompleteProfile(
+          jobData: {}, // ✅ Empty job data since it's from ProfileScreen
+          shiftID: '',
+          jobDATE: '',
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,17 +86,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: commonHeight(context) * 0.05),
-                  CustomAppbar(
-                    title: 'Profile',
-                    isAction: true,
-                    isLeading: false,
-                  ),
+                  TopAppBar(title: 'Profile'),
                   SizedBox(height: commonHeight(context) * 0.02),
                   AccountStatusAndId(
                     acStatus: profileData['accountStatus'].toString(),
-                    id: profileData['id'].toString(),
+                    onEditProfile: navigateToCompleteProfile,
                   ),
-                  SizedBox(height: commonHeight(context) * 0.02),
+                  SizedBox(height: commonHeight(context) * 0.04),
                   ProfileDetails(
                     profileCompleted: widget.profileCompleted,
                     profileIMG: profileData['profilePicture'].toString(),
@@ -105,16 +115,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   totalCompletedJobWidget(),
                   SizedBox(height: commonHeight(context) * 0.02),
                   TotalCompleteJobStatus(),
+                  SizedBox(height: commonHeight(context) * 0.03),
+                  // recentText(),
+                  // SizedBox(height: commonHeight(context) * 0.02),
+                  // RecentPastJobWiget(
+                  //   recentJobList: profileData['recentPastJobs'],
+                  // ),
+                  ViewMyJobsButton(),
+                  SizedBox(height: commonHeight(context) * 0.03),
+                  Divider(),
                   SizedBox(height: commonHeight(context) * 0.02),
                   DemeritPoints(
-                    demeritPoint: profileData['demeritPoints'].toString(),
+                    demeritAmount: profileData['demeritPoints'].toString(),
                   ),
-                  SizedBox(height: commonHeight(context) * 0.03),
-                  recentText(),
                   SizedBox(height: commonHeight(context) * 0.02),
-                  RecentPastJobWiget(
-                    recentJobList: profileData['recentPastJobs'],
-                  ),
+                  Divider(),
                   SizedBox(height: commonHeight(context) * 0.03),
                 ],
               ),
@@ -236,7 +251,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         Text(
-          profileData['stats']['totalCompletedJobs'].toString(),
+          // profileData['stats']['totalCompletedJobs'].toString(),
+          '0',
           style: CustomTextInter.semiBold24(AppColors.blackColor),
         ),
       ],

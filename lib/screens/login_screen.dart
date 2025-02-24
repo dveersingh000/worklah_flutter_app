@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, use_build_context_synchronously
+// ignore_for_file: prefer_const_constructors, use_build_context_synchronously, deprecated_member_use
 
 import 'dart:developer';
 
@@ -16,6 +16,7 @@ import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/image_path.dart';
 import 'package:work_lah/utility/shared_prefs.dart';
 import 'package:work_lah/utility/style_inter.dart';
+
 import 'dart:async'; // Import for Timer
 
 class LoginScreen extends StatefulWidget {
@@ -26,7 +27,16 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  List<String> countryCodes = ['+65', '+91', '+70'];
+  bool isHovered = false; // State to track hover
+  bool isOtpHovered = false;
+  List<Map<String, String>> countryCodes = [
+    {'code': '+65', 'flag': ImagePath.singaporeFlag}, // Singapore
+    {
+      'code': '+60',
+      'flag': ImagePath.singaporeFlag
+    }, // Malaysia (Assuming you add this in ImagePath)
+    {'code': '+91', 'flag': ImagePath.indiaFlag}, // India
+  ];
   String selectedCode = '+65';
 
   TextEditingController otpControllers = TextEditingController();
@@ -194,19 +204,28 @@ class _LoginScreenState extends State<LoginScreen> {
                       SizedBox(height: commonHeight(context) * 0.03),
                       Center(
                         child: Text(
-                          'Log In',
+                          'Sign In',
                           style: CustomTextInter.medium24(AppColors.blackColor),
                         ),
                       ),
                       SizedBox(height: commonHeight(context) * 0.03),
-                      Text(
-                        'Enter your mobile number',
-                        style: CustomTextInter.medium16(AppColors.blackColor),
-                      ),
-                      SizedBox(height: 5.h),
-                      Text(
-                        'Please confirm your country code and enter\nyour mobile number',
-                        style: CustomTextInter.light12(AppColors.subTitleColor),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Sign in using your mobile number',
+                            style:
+                                CustomTextInter.medium16(AppColors.blackColor),
+                          ),
+                          SizedBox(width: 5.w), // Space between text and icon
+                          Tooltip(
+                            message:
+                                'Please confirm your country code and enter your mobile number',
+                            child: Icon(Icons.info_outline,
+                                color: AppColors.subTitleColor, size: 18),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 20.h),
                       Text(
@@ -218,10 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           DropdownButton(
                             dropdownColor: AppColors.whiteColor,
-                            style:
-                                CustomTextInter.regular14(AppColors.blackColor),
                             value: selectedCode,
-                            itemHeight: 65.h,
                             onChanged: (newValue) {
                               setState(() {
                                 selectedCode = newValue!;
@@ -232,12 +248,20 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: double.infinity,
                               color: Color(0XFFC9C9C9),
                             ),
-                            items: countryCodes.map((code) {
+                            items: countryCodes.map((item) {
                               return DropdownMenuItem(
-                                value: code,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(code),
+                                value: item['code'],
+                                child: Row(
+                                  children: [
+                                    Image.asset(
+                                      item['flag']!,
+                                      width: 24,
+                                      height: 16,
+                                      fit: BoxFit.contain,
+                                    ), // Flag image
+                                    SizedBox(width: 5.w),
+                                    Text(item['code']!), // Country code
+                                  ],
                                 ),
                               );
                             }).toList(),
@@ -285,18 +309,28 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                       SizedBox(height: 20.h),
-                      CustomButton(
-                        isDisable: !isContinueDisable,
-                        isLoading: isGenerateOTPLoading,
-                        backgroundColor: AppColors.blackColor,
-                        onTap: () {
-                          if (mobileControllers.text.isEmpty) {
-                            toast('Please Enter Mobile No');
-                          } else {
-                            onGenerateOTP();
-                          }
-                        },
-                        text: 'Generate OTP',
+                      MouseRegion(
+                        onEnter: (_) => setState(() => isOtpHovered = true),
+                        onExit: (_) => setState(() => isOtpHovered = false),
+                        child: CustomButton(
+                          isDisable: false, // Allow clicking
+                          isLoading: isGenerateOTPLoading,
+                          backgroundColor: isGenerateOTPLoading
+                              ? AppColors.blackColor
+                                  .withOpacity(0.5) // Dimmed when loading
+                              : isOtpHovered
+                                  ? AppColors.blackColor
+                                      .withOpacity(0.8) // Darken on hover
+                                  : AppColors.blackColor, // Normal color
+                          onTap: () {
+                            if (mobileControllers.text.isEmpty) {
+                              toast('Please Enter Mobile No');
+                            } else {
+                              onGenerateOTP();
+                            }
+                          },
+                          text: 'Generate OTP',
+                        ),
                       ),
                       SizedBox(height: 20.h),
                       Text(
@@ -344,7 +378,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     'Resend the code',
                                     style: CustomTextInter.light12(
                                       isTimerRunning
-                                          ? AppColors.textGreyColor // Disable color
+                                          ? AppColors
+                                              .textGreyColor // Disable color
                                           : AppColors.themeColor,
                                       isUnderline: true,
                                     ),
@@ -355,48 +390,91 @@ class _LoginScreenState extends State<LoginScreen> {
                             isTimerRunning
                                 ? '00:${otpTimerSeconds.toString().padLeft(2, '0')}'
                                 : '', // Show countdown timer
-                            style: CustomTextInter.medium12(AppColors.blackColor),
+                            style:
+                                CustomTextInter.medium12(AppColors.blackColor),
                           ),
                         ],
                       ),
-                      SizedBox(height: 50.h),
-                      CustomButton(
-                        isDisable: isContinueDisable,
-                        isLoading: isContinueLoading,
-                        onTap: () {
-                          if (otpControllers.text.length < 6) {
-                            toast('Please Enter OTP');
-                          } else {
-                            onVerifyOTP();
+                      SizedBox(
+                          height: 30.h), // Increased spacing between buttons
+                      MouseRegion(
+                        onEnter: (_) {
+                          if (!isContinueDisable) {
+                            setState(() => isHovered = true);
                           }
                         },
-                        text: 'Continue',
-                      ),
-                      SizedBox(height: 10.h),
-                      Center(
-                        child: RichText(
-                          text: TextSpan(
-                            children: <TextSpan>[
-                              TextSpan(
-                                text: 'Don\'t have an account? ',
-                                style: CustomTextInter.regular12(
-                                    AppColors.blackColor),
-                              ),
-                              TextSpan(
-                                text: 'Create an Account',
-                                style: CustomTextInter.semiBold12(
-                                  AppColors.themeColor,
-                                  isUnderline: true,
-                                ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () async {
-                                    moveToNext(context, RegisterScreen());
-                                  },
-                              ),
-                            ],
+                        onExit: (_) {
+                          if (!isContinueDisable) {
+                            setState(() => isHovered = false);
+                          }
+                        },
+                        child: Tooltip(
+                          message:
+                              isContinueDisable ? 'Generate OTP first' : '',
+                          child: CustomButton(
+                            isDisable: isContinueDisable,
+                            isLoading: isContinueLoading,
+                            backgroundColor: isContinueDisable
+                                ? AppColors.themeColor
+                                    .withOpacity(0.4) // Dimmed when disabled
+                                : isHovered
+                                    ? AppColors.themeColor
+                                        .withOpacity(0.8) // Darken on hover
+                                    : AppColors.themeColor,
+                            onTap: () {
+                              if (otpControllers.text.length < 6) {
+                                toast('Please Enter OTP');
+                              } else {
+                                onVerifyOTP();
+                              }
+                            },
+                            text: 'Sign In',
                           ),
                         ),
                       ),
+                      SizedBox(height: 20.h), // Increased spacing for better UI
+                      Center(
+                        child: Column(
+                          children: [
+                            Text(
+                              "Don't have an account?",
+                              style: CustomTextInter.regular14(
+                                  AppColors.blackColor),
+                            ),
+                            SizedBox(
+                                height: 12.h), // Space between text and button
+                            SizedBox(
+                              width: double
+                                  .infinity, // Match the Continue button width
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  moveToNext(context, RegisterScreen());
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
+                                      color:
+                                          AppColors.themeColor), // Blue border
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 18.h), // Match button height
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.r),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Create Account',
+                                  style: CustomTextInter.regular14(
+                                      AppColors.themeColor),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                          height: 30
+                              .h), // Additional spacing before the bottom of the page
+                      // Additional spacing before bottom of the page
+
                       SizedBox(height: 20.h),
                     ],
                   ),

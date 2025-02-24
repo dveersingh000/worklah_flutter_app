@@ -66,7 +66,7 @@ class WalletAmountCard extends StatelessWidget {
                     child: Row(
                       children: [
                         Text(
-                          'Cash Out',
+                          'View Wallet',
                           style: CustomTextInter.medium12(AppColors.whiteColor),
                         ),
                         SizedBox(width: 5.w),

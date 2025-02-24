@@ -13,63 +13,60 @@ import 'package:work_lah/screens/bottombar/profile/cashout/CashOutHomeScreen.dar
 
 class AccountStatusAndId extends StatelessWidget {
   final String acStatus;
-  final String id;
+  final VoidCallback onEditProfile;
+
   const AccountStatusAndId({
     super.key,
     required this.acStatus,
-    required this.id,
+    required this.onEditProfile,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(left: 10.w, right: 10.w),
-      child: Column(
+      padding: EdgeInsets.symmetric(horizontal: 10.w),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: 'Account status: ',
-                        style: CustomTextInter.medium12(
-                          AppColors.blackColor,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ' $acStatus',
-                        style: CustomTextInter.semiBold12(
-                          AppColors.greenColor,
-                        ),
-                      ),
-                    ],
+          // **Account Status**
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                children: <TextSpan>[
+                  TextSpan(
+                    text: 'Account status: ',
+                    style: CustomTextInter.medium12(AppColors.blackColor),
                   ),
-                ),
+                  TextSpan(
+                    text: ' $acStatus',
+                    style: CustomTextInter.semiBold12(AppColors.greenColor),
+                  ),
+                ],
               ),
-              RichText(
-                text: TextSpan(
-                  children: <TextSpan>[
-                    TextSpan(
-                      text: 'Id: ',
-                      style: CustomTextInter.semiBold12(
-                        AppColors.blackColor,
-                      ),
-                    ),
-                    TextSpan(
-                      text: ' ${id.substring(0, 6)}',
-                      style: CustomTextInter.regular12(
-                        AppColors.blackColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
-          SizedBox(height: 5.h),
-        ],
+
+          // **Edit Profile Button**
+          GestureDetector(
+          onTap: onEditProfile, // ✅ Calls the function passed from ProfileScreen
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.edit, size: 16.sp, color: AppColors.blackColor),
+                SizedBox(width: 5.w),
+                Text(
+                  'Edit Profile',
+                  style: CustomTextInter.medium14(AppColors.blackColor),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
       ),
     );
   }
@@ -204,41 +201,43 @@ class MyWalletWidget extends StatelessWidget {
                   style: CustomTextInter.medium24(AppColors.whiteColor),
                 ),
               ),
-              Container(
-                height: 35.h,
-                padding: EdgeInsets.only(left: 10.w, right: 10.w),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50),
-                  color: profileCompleted
-                      ? AppColors.themeColor
-                      : AppColors.textGreyColor,
-                ),
-                child: Center(
-    child: InkWell(
-      onTap: profileCompleted
-          ? () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CashOutHomeScreen()),
-              );
-            }
-          : null,
-      child: Row(
-        children: [
-          Text(
-            'Cash Out',
-            style: CustomTextInter.medium12(AppColors.whiteColor),
-          ),
-                      SizedBox(width: 5.w),
-                      Icon(
-                        Icons.arrow_outward,
-                        color: AppColors.whiteColor,
-                        size: 20.sp,
-                      ),
-                    ],
-                  ),
-                ),
-              ),)
+              // Container(
+              //   height: 35.h,
+              //   padding: EdgeInsets.only(left: 10.w, right: 10.w),
+              //   decoration: BoxDecoration(
+              //     borderRadius: BorderRadius.circular(50),
+              //     color: profileCompleted
+              //         ? AppColors.themeColor
+              //         : AppColors.textGreyColor,
+              //   ),
+              //   child: Center(
+              //     child: InkWell(
+              //       onTap: profileCompleted
+              //           ? () {
+              //               Navigator.push(
+              //                 context,
+              //                 MaterialPageRoute(
+              //                     builder: (context) => CashOutHomeScreen()),
+              //               );
+              //             }
+              //           : null,
+              //       child: Row(
+              //         children: [
+              //           Text(
+              //             'Cash Out',
+              //             style: CustomTextInter.medium12(AppColors.whiteColor),
+              //           ),
+              //           SizedBox(width: 5.w),
+              //           Icon(
+              //             Icons.arrow_outward,
+              //             color: AppColors.whiteColor,
+              //             size: 20.sp,
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ),
+              // )
             ],
           ),
         ],
@@ -275,9 +274,8 @@ class TotalCompleteJobStatus extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            commonStatusRow(
-                AppColors.completedColor, '1', 'Completed Jobs'),
-            commonStatusRow(AppColors.canceledColor, '6', 'Cancelled Jobs'),
+            commonStatusRow(AppColors.completedColor, '0', 'Completed Jobs'),
+            commonStatusRow(AppColors.canceledColor, '0', 'Cancelled Jobs'),
             commonStatusRow(AppColors.noShowColor, '0', 'No Show'),
           ],
         ),
@@ -334,141 +332,181 @@ class TotalCompleteJobStatus extends StatelessWidget {
 }
 
 class DemeritPoints extends StatelessWidget {
-  final String demeritPoint;
-  const DemeritPoints({super.key, required this.demeritPoint});
+  final String demeritAmount;
+  const DemeritPoints({super.key, required this.demeritAmount});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: 20.h,
-        bottom: 20.h,
-        left: 10.w,
-        right: 10.w,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: AppColors.demoriteColor,
-      ),
-      child: RichText(
-        text: TextSpan(
-          children: <TextSpan>[
-            TextSpan(
-              text: 'Demerit Points: ',
-              style: CustomTextInter.medium14(
-                AppColors.demoriteTextColor,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(vertical: 15.h, horizontal: 15.w),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10.r),
+            color: AppColors.demoriteColor, // Light pink background
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Demerit Amount:',
+                style:
+                    CustomTextInter.medium14(AppColors.redColor), // Red title
               ),
-            ),
-            TextSpan(
-              text: '\$$demeritPoint',
-              style: CustomTextInter.medium16(
-                AppColors.blackColor,
+              Text(
+                '- \$${demeritAmount}', // Bold and red amount
+                style: CustomTextInter.bold16(AppColors.redColor),
               ),
+            ],
+          ),
+        ),
+        SizedBox(height: 5.h),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10.w),
+          child: Text(
+            'Demerit amount auto-deducts on Dec 1, 2025.',
+            style: CustomTextInter.regular12(AppColors.subTitColor),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ViewMyJobsButton extends StatelessWidget {
+  const ViewMyJobsButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 15.w),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () {
+            // ✅ Navigate to "My Jobs" Screen
+            // Navigator.pushNamed(context, '/my-jobs');
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.lightBorderColor, // Light background
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.r),
             ),
-          ],
+            padding: EdgeInsets.symmetric(vertical: 20.h),
+            elevation: 0, // No shadow
+          ),
+          child: Text(
+            'View My Jobs',
+            style: CustomTextInter.medium16(AppColors.blackColor),
+          ),
         ),
       ),
     );
   }
 }
 
-class RecentPastJobWiget extends StatelessWidget {
-  final List recentJobList;
-  const RecentPastJobWiget({super.key, required this.recentJobList});
 
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: EdgeInsets.zero,
-      shrinkWrap: true,
-      itemCount: recentJobList.length,
-      itemBuilder: (context, index) {
-        final item = recentJobList[index];
-        return Container(
-          padding:
-              EdgeInsets.only(left: 10.h, right: 10.w, top: 20.h, bottom: 20.h),
-          decoration: BoxDecoration(
-            color: AppColors.whiteColor,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.lightBorderColor),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Image.asset(ImagePath.jobLogoIMG),
-                  SizedBox(width: 10.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Image.asset(ImagePath.dishIMG),
-                            SizedBox(width: 5.w),
-                            Text(
-                              item['jobName'].toString(),
-                              style: CustomTextInter.semiBold16(
-                                  AppColors.blackColor),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          item['subtitle'].toString(),
-                          style:
-                              CustomTextInter.regular12(AppColors.subTitColor),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.share),
-                ],
-              ),
-              SizedBox(height: 10.h),
-              RichText(
-                text: TextSpan(
-                  children: <TextSpan>[
-                    TextSpan(
-                      text: '${item['duration']} - ',
-                      style: CustomTextInter.light14(
-                        AppColors.greenColor,
-                      ),
-                    ),
-                    TextSpan(
-                      text: item['status'].toString(),
-                      style: CustomTextInter.regular14(
-                        AppColors.greenColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 5.h),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      DateFormat('MMMM yyyy')
-                          .format(DateTime.parse(item['date'].toString())),
-                      style: CustomTextInter.light14(
-                        AppColors.blackColor,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    item['companyName'].toString(),
-                    style: CustomTextInter.light14(
-                      AppColors.themeColor,
-                      isUnderline: true,
-                    ),
-                  ),
-                ],
-              )
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
+
+// class RecentPastJobWiget extends StatelessWidget {
+//   final List recentJobList;
+//   const RecentPastJobWiget({super.key, required this.recentJobList});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return ListView.builder(
+//       padding: EdgeInsets.zero,
+//       shrinkWrap: true,
+//       itemCount: recentJobList.length,
+//       itemBuilder: (context, index) {
+//         final item = recentJobList[index];
+//         return Container(
+//           padding:
+//               EdgeInsets.only(left: 10.h, right: 10.w, top: 20.h, bottom: 20.h),
+//           decoration: BoxDecoration(
+//             color: AppColors.whiteColor,
+//             borderRadius: BorderRadius.circular(10),
+//             border: Border.all(color: AppColors.lightBorderColor),
+//           ),
+//           child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             children: [
+//               Row(
+//                 children: [
+//                   Image.asset(ImagePath.jobLogoIMG),
+//                   SizedBox(width: 10.w),
+//                   Expanded(
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         Row(
+//                           children: [
+//                             Image.asset(ImagePath.dishIMG),
+//                             SizedBox(width: 5.w),
+//                             Text(
+//                               item['jobName'].toString(),
+//                               style: CustomTextInter.semiBold16(
+//                                   AppColors.blackColor),
+//                             ),
+//                           ],
+//                         ),
+//                         Text(
+//                           item['subtitle'].toString(),
+//                           style:
+//                               CustomTextInter.regular12(AppColors.subTitColor),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                   Icon(Icons.share),
+//                 ],
+//               ),
+//               SizedBox(height: 10.h),
+//               RichText(
+//                 text: TextSpan(
+//                   children: <TextSpan>[
+//                     TextSpan(
+//                       text: '${item['duration']} - ',
+//                       style: CustomTextInter.light14(
+//                         AppColors.greenColor,
+//                       ),
+//                     ),
+//                     TextSpan(
+//                       text: item['status'].toString(),
+//                       style: CustomTextInter.regular14(
+//                         AppColors.greenColor,
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//               SizedBox(height: 5.h),
+//               Row(
+//                 children: [
+//                   Expanded(
+//                     child: Text(
+//                       DateFormat('MMMM yyyy')
+//                           .format(DateTime.parse(item['date'].toString())),
+//                       style: CustomTextInter.light14(
+//                         AppColors.blackColor,
+//                       ),
+//                     ),
+//                   ),
+//                   Text(
+//                     item['companyName'].toString(),
+//                     style: CustomTextInter.light14(
+//                       AppColors.themeColor,
+//                       isUnderline: true,
+//                     ),
+//                   ),
+//                 ],
+//               )
+//             ],
+//           ),
+//         );
+//       },
+//     );
+//   }
+// }
+
+

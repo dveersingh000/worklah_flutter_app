@@ -10,6 +10,7 @@ import 'package:work_lah/screens/model/user_model.dart';
 import 'package:work_lah/utility/colors.dart';
 import 'package:work_lah/utility/shared_prefs.dart';
 import 'package:work_lah/utility/style_inter.dart';
+import 'package:work_lah/screens/bottombar/home/qr_scanner/scan_qr_screen.dart';
 
 class BottomBarScreen extends StatefulWidget {
   final int index;
@@ -107,6 +108,13 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
           onTap: (value) {
             setState(() {
               _page = value;
+              if (_page == 2) {
+                // Navigate to QR Scan screen directly
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ScanQRScreen()),
+                );
+              }
             });
           },
           items: [
@@ -116,7 +124,11 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.menu_outlined),
-              label: 'Manage Jobs',
+              label: 'My Jobs',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.qr_code_scanner, color: AppColors.themeColor),
+              label: 'Clock in/Out',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.account_balance_wallet_outlined),
@@ -139,9 +151,9 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
         return HomeScreen();
       case 1:
         return ManageJobScreen();
-      case 2:
-        return EWalletScreen();
       case 3:
+        return EWalletScreen();
+      case 4:
         return ProfileScreen(
           profileCompleted: userModel?.profileCompleted ?? false,
         );

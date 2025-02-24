@@ -84,7 +84,7 @@ class _OnGoingShiftCancelState extends State<OnGoingShiftCancel> {
                 ),
                 JobIMGWidget(
                   posterIMG: widget.data['jobIcon'].toString(),
-                  smallIMG: widget.data['subtitleIcon'].toString(),
+                  // smallIMG: widget.data['subtitleIcon'].toString(),
                 ),
                 Padding(
                   padding: EdgeInsets.only(top: 10.h),
@@ -169,9 +169,9 @@ class _OnGoingShiftCancelState extends State<OnGoingShiftCancel> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            JobSalary(
-                              salary: widget.data['salary'].toString(),
-                            ),
+                            // JobSalary(
+                            //   salary: widget.data['salary'].toString(),
+                            // ),
                             SizedBox(height: 20.h),
                             Text(
                               'Described Reason',

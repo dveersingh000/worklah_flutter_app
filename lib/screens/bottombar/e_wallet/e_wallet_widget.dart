@@ -39,7 +39,7 @@ class WalletCardWidget extends StatelessWidget {
               ),
               SizedBox(width: 5.w),
               Text(
-                'Your e-Wallet amount',
+                'Your E-Wallet amount',
                 style: CustomTextInter.medium12(AppColors.fieldBorderColor),
               ),
             ],
@@ -202,13 +202,13 @@ class CommonTransactionWidget extends StatelessWidget {
                           style:
                               CustomTextPopins.regular12(AppColors.blackColor),
                         ),
-                        Text(
-                          'Right Service Pvt. Ltd.',
-                          style: CustomTextPopins.semiBold12(
-                            AppColors.themeColor,
-                            isUnderline: true,
-                          ),
-                        ),
+                        // Text(
+                        //   'Right Service Pvt. Ltd.',
+                        //   style: CustomTextPopins.semiBold12(
+                        //     AppColors.themeColor,
+                        //     isUnderline: true,
+                        //   ),
+                        // ),
                         Text(
                           '07 Jun, 2024 | 03:10 PM',
                           style:

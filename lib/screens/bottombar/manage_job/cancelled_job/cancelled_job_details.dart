@@ -80,16 +80,16 @@ class _CancelledJobDetailsState extends State<CancelledJobDetails> {
                       ),
                       JobIMGWidget(
                         posterIMG: jobDetailsData['jobIcon'].toString(),
-                        smallIMG: jobDetailsData['subtitleIcon'].toString(),
+                        // smallIMG: jobDetailsData['subtitleIcon'].toString(),
                       ),
                       Padding(
                         padding:
                             EdgeInsets.only(right: 20.w, top: 10.h, left: 20.w),
                         child: Column(
                           children: [
-                            JobSalary(
-                              salary: jobDetailsData['salary'].toString(),
-                            ),
+                            // JobSalary(
+                            //   salary: jobDetailsData['salary'].toString(),
+                            // ),
                             JobScopsWidget(
                               jobScropDesc: jobDetailsData['jobScope'],
                             ),

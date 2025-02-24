@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:work_lah/screens/bottombar/home/qr_scanner/select_job_screen.dart';
+import 'package:work_lah/data/send_request.dart';
 
 class MobileScannerScreen extends StatefulWidget {
   const MobileScannerScreen({super.key});
@@ -32,13 +33,21 @@ class _MobileScannerScreenState extends State<MobileScannerScreen> {
                 for (final barcode in barcodes) {
                   String? scannedData = barcode.rawValue;
                   if (scannedData != null) {
+                    var response = await ApiProvider().postRequest(
+                      apiUrl: '/api/qr/scan',
+                      data: {"qrData": scannedData},
+                    );
+
+                    if (response['success']) {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const SelectJobScreen(),
-                      ),
+                          builder: (context) => SelectJobScreen(
+                              jobData: response['jobDetails']),
+                        ),
                     );
                   }
+                }
                 }
               },
             ),
