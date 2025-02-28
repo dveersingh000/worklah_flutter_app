@@ -25,4 +25,5 @@ class ImagePath {
   static String Job = commonIconPath + "Job.png";
   static String outletImage = commonIconPath + "outletImage.png";
   static String companyLogo = commonIconPath + "companyLogo.png";
+  static String success_illustration = commonIconPath + "success_illustration.png";
 }

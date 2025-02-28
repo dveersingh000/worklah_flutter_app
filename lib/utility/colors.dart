@@ -36,4 +36,5 @@ class AppColors {
   static Color standbyColor = Color(0XFFBC7E01);
   static Color dangorColor = Color(0XFF9F120E);
   static Color blueColor = Color(0xFF007AFF);
+  static Color lightGreyColor = Color(0xFFE7E7E7);
 }

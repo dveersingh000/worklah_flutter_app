@@ -14,7 +14,9 @@ import 'package:work_lah/screens/bottombar/home/qr_scanner/scan_qr_screen.dart';
 
 class BottomBarScreen extends StatefulWidget {
   final int index;
-  const BottomBarScreen({super.key, required this.index});
+  final Widget? child; // ✅ Allows embedding a custom page inside
+
+  const BottomBarScreen({super.key, required this.index, this.child});
 
   @override
   _BottomBarScreenState createState() => _BottomBarScreenState();
@@ -36,7 +38,7 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
   Future<void> getUserLocalData() async {
     UserModel? fetchedUser = await getUserData();
     setState(() {
-      userModel = fetchedUser!;
+      userModel = fetchedUser;
     });
   }
 
@@ -46,10 +48,11 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
       onWillPop: () async {
         if (_page != 0) {
           setState(() {
-            _page = 0;
+            _page = 0; // ✅ Resets to Home Tab if not already on it
           });
-          return false;
+          return false; // ✅ Prevents accidental exit
         }
+        
         final shouldPop = await showDialog<bool>(
           context: context,
           builder: (context) {
@@ -73,7 +76,7 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
                     style: CustomTextInter.medium17(AppColors.themeColor),
                   ),
                   onPressed: () {
-                    SystemNavigator.pop();
+                    SystemNavigator.pop(); // ✅ Exits the app
                   },
                 ),
                 TextButton(
@@ -87,64 +90,25 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
                     style: CustomTextInter.medium17(AppColors.themeColor),
                   ),
                   onPressed: () {
-                    Navigator.pop(context, false);
+                    Navigator.pop(context, false); // ✅ Dismisses dialog
                   },
                 ),
               ],
             );
           },
         );
-        return shouldPop!;
+
+        return shouldPop ?? false; // ✅ Prevents app from closing accidentally
       },
+
       child: Scaffold(
-        bottomNavigationBar: BottomNavigationBar(
-          iconSize: 25,
-          backgroundColor: AppColors.whiteColor,
-          selectedItemColor: AppColors.themeColor,
-          unselectedItemColor: AppColors.blackColor,
-          showUnselectedLabels: true,
-          currentIndex: _page,
-          type: BottomNavigationBarType.fixed,
-          onTap: (value) {
-            setState(() {
-              _page = value;
-              if (_page == 2) {
-                // Navigate to QR Scan screen directly
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ScanQRScreen()),
-                );
-              }
-            });
-          },
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.menu_outlined),
-              label: 'My Jobs',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.qr_code_scanner, color: AppColors.themeColor),
-              label: 'Clock in/Out',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet_outlined),
-              label: 'E-Wallet',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle_outlined),
-              label: 'Profile',
-            ),
-          ],
-        ),
-        body: _getBody(),
+        bottomNavigationBar: _buildBottomNavBar(),
+        body: widget.child ?? _getBody(), // ✅ If child is provided, display it; otherwise, show default pages
       ),
     );
   }
 
+  /// ✅ Handles bottom navigation pages
   Widget _getBody() {
     switch (_page) {
       case 0:
@@ -154,11 +118,51 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
       case 3:
         return EWalletScreen();
       case 4:
-        return ProfileScreen(
-          profileCompleted: userModel?.profileCompleted ?? false,
-        );
+        return ProfileScreen(profileCompleted: userModel?.profileCompleted ?? false);
       default:
         return Container();
     }
+  }
+
+  /// ✅ Builds Bottom Navigation Bar and Handles Page Switching
+  Widget _buildBottomNavBar() {
+    return BottomNavigationBar(
+      iconSize: 25,
+      backgroundColor: AppColors.whiteColor,
+      selectedItemColor: AppColors.themeColor,
+      unselectedItemColor: AppColors.blackColor,
+      showUnselectedLabels: true,
+
+      // ✅ Ensure `currentIndex` is always valid
+      currentIndex: (_page >= 0 && _page < 5) ? _page : 0,
+
+      type: BottomNavigationBarType.fixed,
+      onTap: (value) {
+        if (widget.child != null) {
+          // ✅ Replace current page with selected tab instead of popping
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => BottomBarScreen(index: value)),
+          );
+        } else {
+          setState(() {
+            _page = value;
+            if (_page == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ScanQRScreen()),
+              );
+            }
+          });
+        }
+      },
+      items: [
+        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.menu_outlined), label: 'My Jobs'),
+        BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner, color: AppColors.themeColor), label: 'Clock in/Out'),
+        BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'E-Wallet'),
+        BottomNavigationBarItem(icon: Icon(Icons.account_circle_outlined), label: 'Profile'),
+      ],
+    );
   }
 }

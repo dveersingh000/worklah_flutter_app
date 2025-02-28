@@ -12,13 +12,15 @@ import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:work_lah/utility/image_path.dart';
+import 'package:work_lah/screens/bottombar/bottom_bar_screen.dart';
 // import 'package:work_lah/screens/bottombar/home/qr_scanner/scan_qr_screen.dart';
 
 class TopBarWidget extends StatefulWidget {
   final String userName;
   final String imgPath;
 
-  const TopBarWidget({super.key, required this.userName, required this.imgPath});
+  const TopBarWidget(
+      {super.key, required this.userName, required this.imgPath});
 
   @override
   _TopBarWidgetState createState() => _TopBarWidgetState();
@@ -39,7 +41,8 @@ class _TopBarWidgetState extends State<TopBarWidget> {
   }
 
   OverlayEntry _createOverlayEntry() {
-    RenderBox renderBox = _menuKey.currentContext!.findRenderObject() as RenderBox;
+    RenderBox renderBox =
+        _menuKey.currentContext!.findRenderObject() as RenderBox;
     var offset = renderBox.localToGlobal(Offset.zero);
 
     return OverlayEntry(
@@ -183,22 +186,22 @@ class SearchWidget extends StatefulWidget {
 class _SearchWidgetState extends State<SearchWidget> {
   TextEditingController searchController = TextEditingController();
   Timer? debounce;
-  bool isSearching = false;  // ✅ Indicates when the search is loading
+  bool isSearching = false; // ✅ Indicates when the search is loading
   bool showNoJobsMessage = false; // ✅ Controls "No Jobs Found" message
 
   // Function to call the search API
   void searchJobs(String query) {
     if (query.isEmpty) {
+      setState(() {
+        widget.onSearchResults([]); // ✅ Reset to full list
+        showNoJobsMessage = false; // ✅ Hide "No Jobs Found" message
+      });
+      return;
+    }
     setState(() {
-      widget.onSearchResults([]); // ✅ Reset to full list
-      showNoJobsMessage = false; // ✅ Hide "No Jobs Found" message
+      isSearching = true; // ✅ Show loading indicator
+      showNoJobsMessage = false; // ✅ Hide "No Jobs Found" while searching
     });
-    return;
-  }
-    setState(() {
-    isSearching = true; // ✅ Show loading indicator
-    showNoJobsMessage = false; // ✅ Hide "No Jobs Found" while searching
-  });
 
     // Debounce API calls to reduce excessive requests
     debounce?.cancel();
@@ -208,31 +211,31 @@ class _SearchWidgetState extends State<SearchWidget> {
           apiUrl: '/api/jobs/search?jobName=$query',
         );
         setState(() {
-        isSearching = false; // ✅ Hide loading indicator
-      });
+          isSearching = false; // ✅ Hide loading indicator
+        });
 
         if (response != null && response['success'] == true) {
-        List<dynamic> searchResults = response['jobs'];
-        widget.onSearchResults(searchResults);
+          List<dynamic> searchResults = response['jobs'];
+          widget.onSearchResults(searchResults);
 
+          setState(() {
+            showNoJobsMessage = searchResults.isEmpty; // ✅ Show/Hide message
+          });
+        } else {
+          setState(() {
+            widget.onSearchResults([]);
+            showNoJobsMessage = true; // ✅ Show "No Jobs Found"
+          });
+        }
+      } catch (e) {
+        log('Error searching jobs: $e');
         setState(() {
-          showNoJobsMessage = searchResults.isEmpty; // ✅ Show/Hide message
-        });
-      } else {
-        setState(() {
+          isSearching = false;
           widget.onSearchResults([]);
-          showNoJobsMessage = true; // ✅ Show "No Jobs Found"
+          showNoJobsMessage = true;
         });
       }
-      } catch (e) {
-      log('Error searching jobs: $e');
-      setState(() {
-        isSearching = false;
-        widget.onSearchResults([]);
-        showNoJobsMessage = true;
-      });
-    }
-  });
+    });
   }
 
   @override
@@ -272,7 +275,6 @@ class _SearchWidgetState extends State<SearchWidget> {
                   hintText: 'Search Jobs..',
                   hintStyle: CustomTextInter.medium12(AppColors.fieldHintColor),
                 ),
-                
                 onChanged: (value) {
                   searchJobs(value);
                 },
@@ -318,7 +320,6 @@ class _SearchWidgetState extends State<SearchWidget> {
     );
   }
 }
-
 
 class DateSelectionWidget extends StatefulWidget {
   final Function(String) onDateSelected;
@@ -636,32 +637,35 @@ class JobWidget extends StatelessWidget {
 
                 /// **Apply Button**
                 SizedBox(
-  width: double.infinity,
-  child: ElevatedButton(
-    onPressed: () {
-      /// ✅ Navigate to JobDetailsScreen and pass jobID
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => JobDetailsScreen(
-            jobID: jobData['_id'], // ✅ Ensure jobData['_id'] exists
-          ),
-        ),
-      );
-    },
-    style: ElevatedButton.styleFrom(
-      backgroundColor: AppColors.themeColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.r),
-      ),
-      padding: EdgeInsets.symmetric(vertical: 15.h),
-    ),
-    child: Text(
-      'Apply',
-      style: CustomTextInter.bold16(AppColors.whiteColor),
-    ),
-  ),
-),
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      /// ✅ Navigate to JobDetailsScreen and pass jobID
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BottomBarScreen(
+                            index: -1, // ✅ Prevents changing the selected tab
+                            child: JobDetailsScreen(
+                                jobID: jobData[
+                                    '_id']), // ✅ Keeps bottom bar visible
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.themeColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 15.h),
+                    ),
+                    child: Text(
+                      'Apply',
+                      style: CustomTextInter.bold16(AppColors.whiteColor),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

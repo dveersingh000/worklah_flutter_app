@@ -13,7 +13,9 @@ import 'package:work_lah/utility/custom_appbar.dart';
 import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:work_lah/utility/syle_poppins.dart';
-import 'package:work_lah/utility/top_app_bar.dart';
+import 'package:work_lah/screens/bottombar/home/complete_profile/complete_profile.dart';
+import 'package:work_lah/screens/bottombar/home/job_detail/job_details_preview_screen.dart';
+import 'package:work_lah/screens/bottombar/bottom_bar_screen.dart';
 
 class JobDetailsScreen extends StatefulWidget {
   final String jobID;
@@ -25,13 +27,35 @@ class JobDetailsScreen extends StatefulWidget {
 
 class _JobDetailsScreenState extends State<JobDetailsScreen> {
   bool jobDetailsLoading = false;
+  bool profileLoading = false;
   Map<String, dynamic> jobDetailsData = {};
+  List<dynamic> availableShiftsData = [];
+  bool profileCompleted = false;
   int selectedIndex = 0;
+
+  // ✅ Capture Selected Shifts from AvailableShiftsWidget
+  List<dynamic> getSelectedShifts() {
+    List<dynamic> selectedShifts = [];
+
+    for (var shiftGroup in availableShiftsData) {
+      String date = shiftGroup['date'] ?? 'Unknown Date'; 
+      for (var shift in shiftGroup['shifts']) {
+        if (shift['isSelected'] == true) {
+          selectedShifts.add({
+            ...shift, 
+            'date': date, 
+          });
+        }
+      }
+    }
+    return selectedShifts;
+  }
 
   @override
   void initState() {
     super.initState();
     getJobDetailWithID();
+    getProfileStatus();
   }
 
   void getJobDetailWithID() async {
@@ -46,6 +70,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       if (response != null && response.containsKey('job')) {
         setState(() {
           jobDetailsData = response['job']; // ✅ Assign 'job' object
+          availableShiftsData = response['job']['availableShiftsData'] ?? [];
           jobDetailsLoading = false;
         });
       } else {
@@ -64,154 +89,312 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     }
   }
 
+  void getProfileStatus() async {
+    setState(() {
+      profileLoading = true;
+    });
+
+    try {
+      var response =
+          await ApiProvider().getRequest(apiUrl: '/api/profile/stats');
+
+      if (response != null && response.containsKey('profileCompleted')) {
+        setState(() {
+          profileCompleted = response['profileCompleted'];
+        });
+      } else {
+        log('Error: Invalid profile response structure');
+        toast('Failed to fetch profile status');
+      }
+    } catch (e) {
+      log('Error fetching profile status: $e');
+      toast('An error occurred while fetching profile status');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var employerData = jobDetailsData['employer'] ?? {};
 
     return Scaffold(
       backgroundColor: AppColors.whiteColor,
-      body: Stack(
+      body: Column(
         children: [
-          // 🔹 Scrollable Job Details
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                TopAppBar(title: ''),
-                SizedBox(height: commonHeight(context) * 0.01),
-                Padding(
-                  padding: EdgeInsets.only(left: 10.w, right: 10.w),
-                  child: CustomAppbar(title: ''),
-                ),
-                jobDetailsLoading
-                    ? SizedBox(
-                        height: commonHeight(context) * 0.5,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                              color: AppColors.themeColor),
-                        ),
-                      )
-                    : Column(
-                        children: [
-                          SizedBox(height: commonHeight(context) * 0.03),
-                          JobNameWidget(
-                            jobTitle: jobDetailsData['jobName'] ?? 'Unknown Job',
-                            jobSubTitle: jobDetailsData['outlet']?['name'] ??
-                                'Unknown Outlet',
-                          ),
-                          JobIMGWidget(
-                            posterIMG: jobDetailsData['jobIcon'] ?? '',
-                          ),
-                          Padding(
-                            padding:
-                                EdgeInsets.only(right: 20.w, top: 10.h, left: 20.w),
-                            child: Column(
-                              children: [
-                                JobScopsWidget(
-                                  jobScropDesc:
-                                      jobDetailsData['jobScope'] ?? [],
-                                ),
-                                JobRequirementWidget(
-                                  jobRequirements:
-                                      jobDetailsData['jobRequirements'] ?? [],
-                                ),
-                                availabeShiftText(),
-                                SizedBox(height: 15.h),
-                                AvailableShiftsWidget(),
-                                LocationWidget(
-                                  locationData:
-                                      jobDetailsData['locationCoordinates'],
-                                ),
-                                SizedBox(height: 20.h),
-                                EmployerWidget(
-                                  employerName:
-                                      employerData['name']?.toString() ?? 'N/A',
-                                  employerLogo:
-                                      employerData['logo']?.toString() ?? '',
-                                  jobId: jobDetailsData['id']?.toString() ?? '',
-                                  jobCategory:
-                                      jobDetailsData['jobCategory']?.toString() ??
-                                          'N/A',
-                                  jobLocation:
-                                      jobDetailsData['location']?.toString() ??
-                                          'N/A',
-                                  jobDates: jobDetailsData['jobDates'] != null
-                                      ? jobDetailsData['jobDates']
-                                          .map((date) => date['date'].toString())
-                                          .join(' | ')
-                                      : 'N/A',
-                                ),
-                                SizedBox(height: 150.h),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-              ],
-            ),
-          ),
-
-          // 🔽 **Bottom UI - Confirm Booking & Cancel Buttons**
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: EdgeInsets.all(15.w),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                    offset: Offset(0, -2),
-                  ),
-                ],
-              ),
+          Expanded(
+            // Makes body scrollable while buttons remain fixed
+            child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // ✅ Confirm Booking Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        toast('Booking Confirmed!');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.themeColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.r),
-                        ),
-                        padding: EdgeInsets.symmetric(vertical: 15.h),
-                      ),
-                      child: Text(
-                        'Confirm Booking',
-                        style: CustomTextInter.bold16(AppColors.whiteColor),
-                      ),
-                    ),
+                  SizedBox(height: commonHeight(context) * 0.01),
+                  Padding(
+                    padding: EdgeInsets.only(left: 10.w, right: 10.w),
+                    child: CustomAppbar(title: ''),
                   ),
-                  SizedBox(height: 10.h),
+                  jobDetailsLoading
+                      ? SizedBox(
+                          height: commonHeight(context) * 0.5,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                                color: AppColors.themeColor),
+                          ),
+                        )
+                      : Column(
+                          children: [
+                            SizedBox(height: commonHeight(context) * 0.03),
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  left: 10.w,
+                                  right: 10.w), // ✅ Same as CustomAppbar
+                              child: JobNameWidget(
+                                jobTitle:
+                                    jobDetailsData['jobName'] ?? 'Unknown Job',
+                                jobSubTitle: jobDetailsData['outlet']
+                                        ?['name'] ??
+                                    'Unknown Outlet',
+                              ),
+                            ),
+                            JobIMGWidget(
+                              posterIMG: jobDetailsData['jobIcon'] ?? '',
+                            ),
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  right: 20.w, top: 10.h, left: 20.w),
+                              child: Column(
+                                children: [
+                                  JobScopsWidget(
+                                    jobScropDesc:
+                                        jobDetailsData['jobScope'] ?? [],
+                                  ),
+                                  JobRequirementWidget(
+                                    jobRequirements:
+                                        jobDetailsData['jobRequirements'] ?? [],
+                                  ),
+                                  availabeShiftText(),
+                                  SizedBox(height: 15.h),
+                                  AvailableShiftsWidget(
+                                    availableShiftsData: availableShiftsData,
+                                  ),
+                                  SizedBox(height: 20.h),
+                                  Container(
+                                    padding: EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Color(0XFFFFDDBD),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.person,
+                                              size: 16.sp,
+                                              color: AppColors.standbyColor,
+                                            ),
+                                            SizedBox(width: 5.w),
+                                            Text(
+                                              'Standby Booking Warning Notices',
+                                              style: CustomTextInter.semiBold10(
+                                                  AppColors.standbyColor),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 20.h),
+                                        RichText(
+                                          text: TextSpan(
+                                            children: <TextSpan>[
+                                              TextSpan(
+                                                text: '1. No-show Penalty: ',
+                                                style: CustomTextInter.medium12(
+                                                    AppColors.standbyColor),
+                                              ),
+                                              TextSpan(
+                                                text:
+                                                    'Failing to show up after being activated from standby will result in a \$20 penalty.',
+                                                style:
+                                                    CustomTextInter.regular12(
+                                                  AppColors.fieldTitleColor,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        SizedBox(height: 10.h),
+                                        RichText(
+                                          text: TextSpan(
+                                            children: <TextSpan>[
+                                              TextSpan(
+                                                text: '2. Booking Fee: ',
+                                                style: CustomTextInter.medium12(
+                                                    AppColors.standbyColor),
+                                              ),
+                                              TextSpan(
+                                                text:
+                                                    'A \$10 fee will be charged upon shift completion for standby booking.',
+                                                style:
+                                                    CustomTextInter.regular12(
+                                                  AppColors.fieldTitleColor,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        SizedBox(height: 10.h),
+                                        RichText(
+                                          text: TextSpan(
+                                            children: <TextSpan>[
+                                              TextSpan(
+                                                text: '3. Standby Conditions: ',
+                                                style: CustomTextInter.medium12(
+                                                    AppColors.standbyColor),
+                                              ),
+                                              TextSpan(
+                                                text:
+                                                    'If you book another shift that overlaps with this standby slot, your standby reservation will be forfeited.',
+                                                style:
+                                                    CustomTextInter.regular12(
+                                                  AppColors.fieldTitleColor,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        SizedBox(height: 20.h),
+                                        Text(
+                                          'Thank you for your interest!',
+                                          style: CustomTextInter.medium12(
+                                            AppColors.fieldTitleColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: 20.h),
+                                  // 📍 Location Widget
+                                  LocationWidget(
+                                    locationData:
+                                        jobDetailsData['locationCoordinates'],
+                                  ),
 
-                  // ❌ Cancel Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: AppColors.themeColor),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.r),
+                                  SizedBox(height: 20.h),
+
+                                  // 🏢 Employer Details
+                                  EmployerWidget(
+                                    employerName:
+                                        employerData['name']?.toString() ??
+                                            'N/A',
+                                    employerLogo:
+                                        employerData['logo']?.toString() ?? '',
+                                    jobId:
+                                        jobDetailsData['id']?.toString() ?? '',
+                                    jobCategory: jobDetailsData['jobCategory']
+                                            ?.toString() ??
+                                        'N/A',
+                                    jobLocation: jobDetailsData['location']
+                                            ?.toString() ??
+                                        'N/A',
+                                    jobDates: jobDetailsData[
+                                                'availableShiftsData'] !=
+                                            null
+                                        ? jobDetailsData['availableShiftsData']
+                                            .map((date) =>
+                                                date['date'].toString())
+                                            .join(' | ')
+                                        : 'N/A',
+                                  ),
+                                  SizedBox(height: 20.h),
+
+                                  /// ✅ Button Appears Normally at the End
+                                  Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 20.w),
+                                    child: SizedBox(
+                                      width: double.infinity,
+                                      height: 50.h,
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          if (profileCompleted) {
+                                            List<dynamic> selectedShifts =
+                                                getSelectedShifts();
+
+                                            // ✅ Wrap with BottomBarScreen so it includes the bottom navigation bar
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    BottomBarScreen(
+                                                  index:
+                                                      0, // ✅ Keep Home as default tab OR pass the correct tab index
+                                                  child:
+                                                      JobDetailsPreviewScreen(
+                                                    jobDetailsData:
+                                                        jobDetailsData,
+                                                    selectedShifts:
+                                                        selectedShifts, // ✅ Pass selected shifts with date
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          } else {
+                                            // ✅ Navigate to Complete Profile
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    CompleteProfile(
+                                                  jobData: {},
+                                                  shiftID: '',
+                                                  jobDATE: '',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.themeColor,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10.r),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          profileCompleted
+                                              ? "Preview"
+                                              : "Complete Your Profile",
+                                          style: CustomTextInter.bold16(
+                                              AppColors.whiteColor),
+                                        ),
+                                      ),
+                                    ),
+                                  ), // ✅ Show the warning message only when profile is NOT completed
+                                  if (!profileCompleted)
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                          top: 10
+                                              .h), // ✅ Spacing below the button
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.info,
+                                              color: Colors.orange,
+                                              size: 16.sp), // ℹ️ Info icon
+                                          SizedBox(width: 5.w),
+                                          Text(
+                                            "Complete your profile before shift bookings",
+                                            style: CustomTextInter.medium12(
+                                                Colors.orange),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  SizedBox(height: 20.h),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        padding: EdgeInsets.symmetric(vertical: 15.h),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: CustomTextInter.bold16(AppColors.themeColor),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -222,22 +405,91 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
   }
 
   Widget availabeShiftText() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          Icons.history_toggle_off_outlined,
-          color: AppColors.blackColor,
+        Row(
+          children: [
+            Icon(
+              Icons.history_toggle_off_outlined,
+              color: AppColors.blackColor,
+              size: 20.sp,
+            ),
+            SizedBox(width: 5.w),
+            Text(
+              'Available Shifts',
+              style: CustomTextInter.medium16(AppColors.blackColor),
+            ),
+          ],
         ),
-        SizedBox(width: 5.w),
-        Text(
-          'Available Shifts',
-          style: CustomTextInter.medium16(AppColors.blackColor),
+        SizedBox(height: 8.h), // Proper spacing
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.person,
+                  color: Colors.grey,
+                  size: 15.sp,
+                ),
+                SizedBox(width: 4.w),
+                Text(
+                  'Available Vacancy',
+                  style: CustomTextInter.medium12(AppColors.blackColor),
+                ),
+                SizedBox(width: 3.w),
+                Icon(
+                  Icons.info_outline,
+                  color: Colors.black54,
+                  size: 14.sp,
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Icon(
+                  Icons.person,
+                  color: AppColors.orangeColor,
+                  size: 15.sp,
+                ),
+                SizedBox(width: 4.w),
+                Text(
+                  'Standby Vacancy',
+                  style: CustomTextInter.medium12(AppColors.blackColor),
+                ),
+                SizedBox(width: 3.w),
+                Icon(
+                  Icons.info_outline,
+                  color: Colors.black54,
+                  size: 14.sp,
+                ),
+              ],
+            ),
+          ],
         ),
+        SizedBox(height: 10.h), // Add space before shifts listing
       ],
     );
   }
 }
 
+Widget commonLeftWidget(String text, Color color) {
+  return Row(
+    children: [
+      Icon(
+        Icons.person,
+        color: color,
+        size: 15.sp,
+      ),
+      SizedBox(width: 5.w),
+      Text(
+        text,
+        style: CustomTextInter.medium10(AppColors.blackColor),
+      ),
+    ],
+  );
+}
 //   @override
 //   Widget build(BuildContext context) {
 //     var employerData = jobDetailsData['employer'] ?? {};
@@ -325,7 +577,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 //           ],
 //         ),
 //       ),
-      
+
 //     );
 //   }
 // }
