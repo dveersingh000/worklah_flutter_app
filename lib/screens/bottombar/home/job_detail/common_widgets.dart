@@ -13,6 +13,7 @@ import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/image_path.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:work_lah/utility/syle_poppins.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class JobRequirements extends StatelessWidget {
   final List<dynamic> jobRequire;
@@ -651,30 +652,30 @@ class OnGoingJobAlert extends StatelessWidget {
           'Your account will be suspended or banned if you fail to show up without valid notice and reason.',
           style: CustomTextInter.medium12(AppColors.dangorColor),
         ),
-        SizedBox(height: 20.h),
+        SizedBox(height: 10.h),
+        GestureDetector(
+            onTap: () async {
+              const url =
+                  'https://supportingadvancement.com/shift_cancellation_policy/';
+              if (await canLaunch(url)) {
+                await launch(url);
+              } else {
+                throw 'Could not launch $url';
+              }
+            },
+            child: MouseRegion(
+              cursor: SystemMouseCursors
+                  .click, // ✅ Change cursor to pointer on hover
+              child: Text(
+                "more about shift cancellation",
+                style: CustomTextInter.medium14(AppColors.blueColor)
+                    .copyWith(decoration: TextDecoration.underline),
+              ),
+            ),
+          ),
+          SizedBox(height: 10.h),
         Divider(),
         SizedBox(height: 20.h),
-        // Row(
-        //   children: [
-        //     Icon(
-        //       Icons.payments,
-        //       color: AppColors.blackColor,
-        //     ),
-        //     SizedBox(width: 5.w),
-        //     Text(
-        //       'About Payment',
-        //       style: CustomTextInter.medium16(AppColors.blackColor),
-        //     ),
-        //   ],
-        // ),
-        // SizedBox(height: 5.h),
-        // Text(
-        //   'Checking in or out significantly earlier or later than your scheduled times may result in delays in payment processing. To ensure timely payments. Please stick closely to your assigned check-in and check-out times.',
-        //   style: CustomTextInter.regular12(AppColors.blackColor),
-        // ),
-        // SizedBox(height: 30.h),
-        // Divider(),
-        // SizedBox(height: 30.h),
       ],
     );
   }

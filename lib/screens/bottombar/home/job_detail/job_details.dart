@@ -38,12 +38,12 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     List<dynamic> selectedShifts = [];
 
     for (var shiftGroup in availableShiftsData) {
-      String date = shiftGroup['date'] ?? 'Unknown Date'; 
+      String date = shiftGroup['date'] ?? 'Unknown Date';
       for (var shift in shiftGroup['shifts']) {
         if (shift['isSelected'] == true) {
           selectedShifts.add({
-            ...shift, 
-            'date': date, 
+            ...shift,
+            'date': date,
           });
         }
       }
@@ -154,7 +154,15 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               ),
                             ),
                             JobIMGWidget(
-                              posterIMG: jobDetailsData['jobIcon'] ?? '',
+                              posterIMG:
+                                  jobDetailsData['outlet']['image'] ?? '',
+                              showShareButton: true,
+                              jobTitle:
+                                  jobDetailsData['jobName'] ?? 'Unknown Job',
+                              jobLocation: jobDetailsData['location'] ??
+                                  'Unknown Location',
+                              jobUrl:
+                                  "https://worklah.onrender.com/api/jobs/${jobDetailsData['id']}",
                             ),
                             Padding(
                               padding: EdgeInsets.only(

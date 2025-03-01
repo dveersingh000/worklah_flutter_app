@@ -120,19 +120,34 @@ class _OnGoingJobDetailsState extends State<OnGoingJobDetails> {
                 : Column(
                     children: [
                       SizedBox(height: commonHeight(context) * 0.03),
-
-                      // Job Name & Subtitle
-                      JobNameWidget(
-                        jobTitle:
-                            jobDetailsData['jobName']?.toString() ?? "N/A",
-                        jobSubTitle:
-                            jobDetailsData['outlet']?['name']?.toString() ??
-                                "N/A",
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20.w),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Job Name & Subtitle
+                            JobNameWidget(
+                              jobTitle: jobDetailsData['jobName']?.toString() ??
+                                  "N/A",
+                              jobSubTitle: jobDetailsData['outlet']?['name']
+                                      ?.toString() ??
+                                  "N/A",
+                            ),
+                          ],
+                        ),
                       ),
 
                       // Job Image
                       JobIMGWidget(
-                        posterIMG: jobDetailsData['jobIcon']?.toString() ?? "",
+                        posterIMG: jobDetailsData['outlet']['outletImage']
+                                ?.toString() ??
+                            "",
+                        showShareButton: false, // ✅ Enable sharing
+                        jobTitle: jobDetailsData['jobName'] ?? 'Unknown Job',
+                        jobLocation:
+                            jobDetailsData['location'] ?? 'Unknown Location',
+                        jobUrl:
+                            "https://yourapp.com/job/${jobDetailsData['_id']}",
                       ),
 
                       Padding(
@@ -151,39 +166,26 @@ class _OnGoingJobDetailsState extends State<OnGoingJobDetails> {
                               jobRequirements:
                                   jobDetailsData['jobRequirements'] ?? [],
                             ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 15.h),
+                      shiftDetailsWidget(),
 
-                            SizedBox(height: 15.h),
-
-                            // Your Selected Shifts
-                            // availabeShiftText(),
-                            SizedBox(height: 15.h),
-
-                            // Available Shifts Widget
-                            // ✅ Correct Shift Details UI with Proper Date Formatting
-                            // selectedShifts.isNotEmpty
-                            //     ? Column(
-                            //         children: selectedShifts.map((shift) {
-                            //           return shiftDetailsWidget(shift);
-                            //         }).toList(),
-                            //       )
-                            //     : Center(
-                            //         child: Text(
-                            //           "No Shifts Available",
-                            //           style: CustomTextInter.medium14(
-                            //               AppColors.blackColor),
-                            //         ),
-                            //       ),
-                            shiftDetailsWidget(),
-
-                            SizedBox(height: 20.h),
-
+                      SizedBox(height: 20.h),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 20.w, vertical: 10.h),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             // Location Section
                             LocationWidget(
                               locationData:
                                   jobDetailsData['locationCoordinates'],
                             ),
 
-                            SizedBox(height: 20.h),
+                            SizedBox(height: 30.h),
 
                             // Employer Section
                             EmployerWidget(
@@ -229,7 +231,7 @@ class _OnGoingJobDetailsState extends State<OnGoingJobDetails> {
     return Container(
       padding: EdgeInsets.all(15.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.borderColor,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -254,7 +256,7 @@ class _OnGoingJobDetailsState extends State<OnGoingJobDetails> {
                   ),
                   SizedBox(width: 5.w),
                   Text(
-                    'Cancellation Shift',
+                    'Your Selected Shifts',
                     style: CustomTextInter.medium16(AppColors.blackColor),
                   ),
                 ],
@@ -316,7 +318,7 @@ class _OnGoingJobDetailsState extends State<OnGoingJobDetails> {
             padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10.r),
-              color: AppColors.themeColor.withOpacity(0.1),
+              color: AppColors.themeColor.withOpacity(0.5),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,7 +329,8 @@ class _OnGoingJobDetailsState extends State<OnGoingJobDetails> {
                     SizedBox(width: 30.w),
                     Row(
                       children: [
-                        _timeBox(jobDetailsData['shift']['startTime'] ?? "--:--",
+                        _timeBox(
+                            jobDetailsData['shift']['startTime'] ?? "--:--",
                             AppColors.themeColor),
                         SizedBox(width: 5.w),
                         Text("to",

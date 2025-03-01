@@ -81,6 +81,12 @@ class _CancelledJobDetailsState extends State<CancelledJobDetails> {
                       JobIMGWidget(
                         posterIMG: jobDetailsData['jobIcon'].toString(),
                         // smallIMG: jobDetailsData['subtitleIcon'].toString(),
+                        showShareButton: false, // ✅ Enable sharing
+                        jobTitle: jobDetailsData['jobName'] ?? 'Unknown Job',
+                        jobLocation:
+                            jobDetailsData['location'] ?? 'Unknown Location',
+                        jobUrl:
+                            "https://worklah.onrender.com/api/jobs/${jobDetailsData['_id']}",
                       ),
                       Padding(
                         padding:

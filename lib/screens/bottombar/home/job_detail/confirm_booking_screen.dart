@@ -82,6 +82,10 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
             JobIMGWidget(
               posterIMG: widget.jobData['jobIcon'].toString(),
               // smallIMG: widget.jobData['subtitleIcon'].toString(),
+              showShareButton: false, // ✅ Enable sharing
+              jobTitle: widget.jobData['jobName'] ?? 'Unknown Job',
+              jobLocation: widget.jobData['location'] ?? 'Unknown Location',
+              jobUrl: "https://worklah.onrender.com/api/jobs/${widget.jobData['id']}",
             ),
             Padding(
               padding: EdgeInsets.only(right: 20.w, top: 10.h, left: 20.w),

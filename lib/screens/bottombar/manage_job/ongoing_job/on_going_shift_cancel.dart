@@ -14,6 +14,7 @@ import 'package:work_lah/utility/colors.dart';
 import 'package:work_lah/utility/custom_appbar.dart';
 import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/style_inter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OnGoingShiftCancel extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -92,12 +93,25 @@ class _OnGoingShiftCancelState extends State<OnGoingShiftCancel> {
             Column(
               children: [
                 SizedBox(height: commonHeight(context) * 0.03),
-                JobNameWidget(
-                  jobTitle: widget.data['jobName'].toString(),
-                  jobSubTitle: widget.data['outlet']?['name'] ?? "N/A",
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      JobNameWidget(
+                        jobTitle: widget.data['jobName'].toString(),
+                        jobSubTitle: widget.data['outlet']?['name'] ?? "N/A",
+                      ),
+                    ],
+                  ),
                 ),
+
                 JobIMGWidget(
-                  posterIMG: widget.data['jobIcon'].toString(),
+                  posterIMG: widget.data['outlet']['outletImage'].toString(),
+                  showShareButton: false, // ✅ Enable sharing
+                  jobTitle: widget.data['jobName'] ?? 'Unknown Job',
+                  jobLocation: widget.data['location'] ?? 'Unknown Location',
+                  jobUrl: "https://yourapp.com/job/${widget.data['_id']}",
                 ),
 
                 Padding(
@@ -116,8 +130,6 @@ class _OnGoingShiftCancelState extends State<OnGoingShiftCancel> {
                     ],
                   ),
                 ),
-
-                Divider(),
 
                 shiftDetailsWidget(),
 
@@ -146,7 +158,7 @@ class _OnGoingShiftCancelState extends State<OnGoingShiftCancel> {
     return Container(
       padding: EdgeInsets.all(15.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.borderColor,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -233,7 +245,7 @@ class _OnGoingShiftCancelState extends State<OnGoingShiftCancel> {
             padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10.r),
-              color: AppColors.themeColor.withOpacity(0.1),
+              color: AppColors.themeColor.withOpacity(0.5),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,10 +485,7 @@ class _OnGoingShiftCancelState extends State<OnGoingShiftCancel> {
                   dropdownColor: Colors.white,
                 ),
               ),
-
               SizedBox(width: 15.w),
-
-              /// **Salary Display**
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -639,23 +648,14 @@ class _OnGoingShiftCancelState extends State<OnGoingShiftCancel> {
             text: TextSpan(
               style: CustomTextInter.medium14(AppColors.blackColor),
               children: [
-                const TextSpan(text: "1. If you accumulate "),
-                TextSpan(
-                  text: "5 or more points",
-                  style: CustomTextInter.bold14(AppColors.redColor),
-                ),
-                const TextSpan(text: ": "),
+                const TextSpan(text: "1. If you accumulate 5 or more points: "),
                 TextSpan(
                   text: "Businesses have the right to cancel your shift",
                   style: CustomTextInter.bold14(AppColors.redColor),
                 ),
                 const TextSpan(text: ".\n\n"),
-                const TextSpan(text: "2. If you accumulate more than "),
-                TextSpan(
-                  text: "8 points",
-                  style: CustomTextInter.bold14(AppColors.redColor),
-                ),
-                const TextSpan(text: ": "),
+                const TextSpan(
+                    text: "2. If you accumulate more than 8 points: "),
                 TextSpan(
                   text: "Your account will be suspended for 4 weeks",
                   style: CustomTextInter.bold14(AppColors.redColor),
@@ -670,14 +670,25 @@ class _OnGoingShiftCancelState extends State<OnGoingShiftCancel> {
             ),
           ),
           SizedBox(height: 10.h),
+          // Inside your widget
           GestureDetector(
-            onTap: () {
-              // Open shift cancellation policy page
+            onTap: () async {
+              const url =
+                  'https://supportingadvancement.com/shift_cancellation_policy/';
+              if (await canLaunch(url)) {
+                await launch(url);
+              } else {
+                throw 'Could not launch $url';
+              }
             },
-            child: Text(
-              "more about shift cancellation",
-              style: CustomTextInter.medium14(AppColors.blueColor)
-                  .copyWith(decoration: TextDecoration.underline),
+            child: MouseRegion(
+              cursor: SystemMouseCursors
+                  .click, // ✅ Change cursor to pointer on hover
+              child: Text(
+                "more about shift cancellation",
+                style: CustomTextInter.medium14(AppColors.blueColor)
+                    .copyWith(decoration: TextDecoration.underline),
+              ),
             ),
           ),
         ],

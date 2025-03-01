@@ -488,20 +488,20 @@ class JobWidget extends StatelessWidget {
                   topRight: Radius.circular(15.r),
                 ),
                 child: Image.network(
-                  jobData['outletImage'] ?? "",
-                  height: 130.h,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    // Use local image if network fails
-                    return Image.asset(
-                      ImagePath.outletImage, // Use the constant from ImagePath
-                      height: 130.h,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    );
-                  },
-                ),
+                        '${ApiProvider().baseUrl}${jobData['outletImage']}',
+                        height: 130.h,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Use local image if network fails
+                          return Image.asset(
+                            ImagePath.trayCollector, // Fallback image
+                            height: 130.h,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          );
+                        },
+                      )
               ),
               Positioned(
                 top: 10.h,

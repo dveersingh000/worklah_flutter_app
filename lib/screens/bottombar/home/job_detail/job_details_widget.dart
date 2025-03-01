@@ -7,6 +7,7 @@ import 'package:work_lah/utility/colors.dart';
 import 'package:work_lah/utility/image_path.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:work_lah/utility/syle_poppins.dart';
+import 'package:share_plus/share_plus.dart';
 
 class AvailableShiftsWidget extends StatefulWidget {
   final List<dynamic> availableShiftsData;
@@ -402,7 +403,19 @@ class JobIMGWidget extends StatelessWidget {
   final String? posterIMG;
   // final String? smallIMG;
   final String? outletImage;
-  const JobIMGWidget({super.key, this.posterIMG, this.outletImage});
+  final bool showShareButton;
+  final String jobTitle;
+  final String jobLocation;
+  final String jobUrl;
+  const JobIMGWidget({super.key, this.posterIMG, this.outletImage, this.showShareButton = false, required this.jobTitle, required this.jobLocation, required this.jobUrl});
+
+  /// ✅ Function to Share Job Details
+  void shareJobDetails() {
+    String shareText =
+        "🔥 Check out this job: $jobTitle\n📍 Location: $jobLocation\n🔗 Apply Now: $jobUrl";
+    
+    Share.share(shareText);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -411,39 +424,51 @@ class JobIMGWidget extends StatelessWidget {
         /// ✅ Background Image (Outlet Image)
         Padding(
           padding: const EdgeInsets.only(top: 20),
-          child: outletImage != null && outletImage!.isNotEmpty
+          child: posterIMG != null && posterIMG!.isNotEmpty
               ? Image.network(
-                  '${ApiProvider().baseUrl}$outletImage',
+                  '${ApiProvider().baseUrl}$posterIMG',
                   fit: BoxFit.cover,
                   width: double.infinity,
-                  height: 180.h, // ✅ Adjust height based on UI
+                  height: 180.h,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset(
+                      ImagePath.trayCollector,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: 180.h,
+                    );
+                  },
                 )
               : Image.asset(
-                  ImagePath.trayCollector, // ✅ Default image
+                  ImagePath.trayCollector,
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: 180.h,
                 ),
         ),
 
-        /// ✅ Share Icon (Floating at Bottom Right)
-        Positioned(
-          bottom: 10.h,
-          right: 20.w,
-          child: Container(
-            height: 45.h,
-            width: 45.w,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.whiteColor,
-            ),
-            child: Icon(
-              Icons.share,
-              color: AppColors.blackColor,
-              size: 21.sp,
+        /// ✅ Conditionally Show Share Icon
+        if (showShareButton)
+          Positioned(
+            bottom: 10.h,
+            right: 20.w,
+            child: GestureDetector(
+              onTap: shareJobDetails, // ✅ Call share function on tap
+              child: Container(
+                height: 45.h,
+                width: 45.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.whiteColor,
+                ),
+                child: Icon(
+                  Icons.share,
+                  color: AppColors.blackColor,
+                  size: 21.sp,
+                ),
+              ),
             ),
           ),
-        ),
       ],
     );
   }

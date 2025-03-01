@@ -15,6 +15,7 @@ import 'package:work_lah/utility/syle_poppins.dart';
 import 'package:work_lah/screens/bottombar/home/complete_profile/complete_profile.dart';
 import 'package:work_lah/screens/bottombar/home/job_detail/availableShiftsPreviewWidget.dart';
 import 'package:work_lah/screens/bottombar/home/job_detail/bookingConfirmationScreen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class JobDetailsPreviewScreen extends StatefulWidget {
   final Map<String, dynamic> jobDetailsData;
@@ -57,8 +58,7 @@ class _JobDetailsPreviewScreenState extends State<JobDetailsPreviewScreen> {
                     children: [
                       SizedBox(height: commonHeight(context) * 0.03),
                       Padding(
-                        padding: EdgeInsets.only(
-                            left: 10.w, right: 10.w),
+                        padding: EdgeInsets.only(left: 10.w, right: 10.w),
                         child: JobNameWidget(
                           jobTitle:
                               widget.jobDetailsData['jobName'] ?? 'Unknown Job',
@@ -68,7 +68,15 @@ class _JobDetailsPreviewScreenState extends State<JobDetailsPreviewScreen> {
                         ),
                       ),
                       JobIMGWidget(
-                        posterIMG: widget.jobDetailsData['jobIcon'] ?? '',
+                        posterIMG:
+                            widget.jobDetailsData['outlet']['image'] ?? '',
+                        showShareButton: true, // ✅ Enable sharing
+                        jobTitle:
+                            widget.jobDetailsData['jobName'] ?? 'Unknown Job',
+                        jobLocation: widget.jobDetailsData['location'] ??
+                            'Unknown Location',
+                        jobUrl:
+                            "https://worklah.onrender.com/api/jobs/${widget.jobDetailsData['id']}",
                       ),
                       Padding(
                         padding:
@@ -218,80 +226,101 @@ class _JobDetailsPreviewScreenState extends State<JobDetailsPreviewScreen> {
                             ),
                             SizedBox(height: 20.h),
 
-                            // 📌 Terms and Conditions Checkboxes
                             Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20.w),
-                              child: Column(
-                                children: [
-                                  CheckboxListTile(
-                                    activeColor: AppColors.themeColor,
-                                    title: RichText(
-                                      text: TextSpan(
-                                        children: [
-                                          TextSpan(
-                                            text: "I agree to the ",
-                                            style: CustomTextInter.medium12(
-                                                AppColors.blackColor),
-                                          ),
-                                          TextSpan(
-                                            text: "Terms and Conditions",
-                                            style: CustomTextInter.medium12(
-                                                AppColors.themeColor),
-                                          ),
-                                          TextSpan(
-                                            text: " written in the policy",
-                                            style: CustomTextInter.medium12(
-                                                AppColors.blackColor),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    value: termsAccepted,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        termsAccepted = value!;
-                                      });
-                                    },
-                                    controlAffinity:
-                                        ListTileControlAffinity.leading,
-                                  ),
-                                  CheckboxListTile(
-                                    activeColor: AppColors.themeColor,
-                                    title: RichText(
-                                      text: TextSpan(
-                                        children: [
-                                          TextSpan(
-                                            text: "I understand the ",
-                                            style: CustomTextInter.medium12(
-                                                AppColors.blackColor),
-                                          ),
-                                          TextSpan(
-                                            text:
-                                                "medical waivers submission terms",
-                                            style: CustomTextInter.medium12(
-                                                AppColors.themeColor),
-                                          ),
-                                          TextSpan(
-                                            text:
-                                                " and conditions and also confirm my availability on the day of shift.",
-                                            style: CustomTextInter.medium12(
-                                                AppColors.blackColor),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    value: medicalWaiverAccepted,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        medicalWaiverAccepted = value!;
-                                      });
-                                    },
-                                    controlAffinity:
-                                        ListTileControlAffinity.leading,
-                                  ),
-                                ],
-                              ),
-                            ),
+  padding: EdgeInsets.symmetric(horizontal: 20.w),
+  child: Column(
+    children: [
+      CheckboxListTile(
+        activeColor: AppColors.themeColor,
+        title: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: "I agree to the ",
+                style: CustomTextInter.medium12(AppColors.blackColor),
+              ),
+              WidgetSpan(
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () async {
+                      const url = 'https://www.worksome.com/legal-center/default-booking-contract';
+                      if (await canLaunch(url)) {
+                        await launch(url);
+                      } else {
+                        throw 'Could not launch $url';
+                      }
+                    },
+                    child: Text(
+                      "Terms and Conditions",
+                      style: CustomTextInter.medium12(AppColors.themeColor)
+                          .copyWith(decoration: TextDecoration.underline),
+                    ),
+                  ),
+                ),
+              ),
+              TextSpan(
+                text: " written in the policy",
+                style: CustomTextInter.medium12(AppColors.blackColor),
+              ),
+            ],
+          ),
+        ),
+        value: termsAccepted,
+        onChanged: (value) {
+          setState(() {
+            termsAccepted = value!;
+          });
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
+      CheckboxListTile(
+        activeColor: AppColors.themeColor,
+        title: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: "I understand the ",
+                style: CustomTextInter.medium12(AppColors.blackColor),
+              ),
+              WidgetSpan(
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () async {
+                      const url = 'https://www.shrm.org/topics-tools/tools/forms/health-insurance-participant-waiver';
+                      if (await canLaunch(url)) {
+                        await launch(url);
+                      } else {
+                        throw 'Could not launch $url';
+                      }
+                    },
+                    child: Text(
+                      "medical waivers submission terms and conditions",
+                      style: CustomTextInter.medium12(AppColors.themeColor)
+                          .copyWith(decoration: TextDecoration.underline),
+                    ),
+                  ),
+                ),
+              ),
+              TextSpan(
+                text: " and also confirm my availability on the day of shift.",
+                style: CustomTextInter.medium12(AppColors.blackColor),
+              ),
+            ],
+          ),
+        ),
+        value: medicalWaiverAccepted,
+        onChanged: (value) {
+          setState(() {
+            medicalWaiverAccepted = value!;
+          });
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
+    ],
+  ),
+),
                             SizedBox(height: 20.h),
 // 📌 Buttons (Confirm Booking & Cancel)
                             Padding(
@@ -308,15 +337,15 @@ class _JobDetailsPreviewScreenState extends State<JobDetailsPreviewScreen> {
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      BottomBarScreen(
-                                                        index: 0,
-                                                        child: BookingConfirmationScreen(
-                                                    jobDetails:
-                                                        widget.jobDetailsData,
-                                                  ),
-                                                  )  
-                                                ),
+                                                    builder: (context) =>
+                                                        BottomBarScreen(
+                                                          index: 0,
+                                                          child:
+                                                              BookingConfirmationScreen(
+                                                            jobDetails: widget
+                                                                .jobDetailsData,
+                                                          ),
+                                                        )),
                                               );
                                             }
                                           : null, // Disabled if terms not accepted
