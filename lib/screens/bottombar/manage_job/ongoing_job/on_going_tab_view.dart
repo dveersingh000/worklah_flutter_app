@@ -18,7 +18,7 @@ class OnGoingTabView extends StatefulWidget {
 
 class _OnGoingTabViewState extends State<OnGoingTabView> {
   bool isOnGoingJobLoading = false;
-  var onGoingJobData = [];
+  List<dynamic> onGoingJobData = [];
 
   @override
   void initState() {
@@ -63,7 +63,10 @@ class _OnGoingTabViewState extends State<OnGoingTabView> {
                 shrinkWrap: true,
                 physics: BouncingScrollPhysics(),
                 itemBuilder: (context, index) {
-                  return CommonJobWidget(jobData: onGoingJobData[index]);
+                  return CommonJobWidget(
+                    jobData: onGoingJobData[index],
+                    tabType: "upcoming", // Pass tabType to differentiate tabs
+                  );
                 },
               );
   }

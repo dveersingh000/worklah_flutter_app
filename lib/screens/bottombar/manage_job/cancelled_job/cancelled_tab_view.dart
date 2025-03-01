@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -17,7 +15,7 @@ class CancelledTabView extends StatefulWidget {
 
 class _CancelledTabViewState extends State<CancelledTabView> {
   bool isCancelledJobLoading = false;
-  var onCancelledJobData = [];
+  var cancelledJobData = [];
 
   @override
   void initState() {
@@ -33,7 +31,7 @@ class _CancelledTabViewState extends State<CancelledTabView> {
       var response =
           await ApiProvider().getRequest(apiUrl: '/api/jobs/cancelled');
       setState(() {
-        onCancelledJobData = response['jobs'];
+        cancelledJobData = response['jobs'];
         isCancelledJobLoading = false;
       });
     } catch (e) {
@@ -52,19 +50,19 @@ class _CancelledTabViewState extends State<CancelledTabView> {
         ? Center(
             child: CircularProgressIndicator(color: AppColors.themeColor),
           )
-        : onCancelledJobData.isEmpty
+        : cancelledJobData.isEmpty
             ? Center(
                 child: Text('No Cancelled Job Found!'),
               )
             : ListView.separated(
                 separatorBuilder: (context, index) => SizedBox(height: 20.h),
-                itemCount: onCancelledJobData.length,
+                itemCount: cancelledJobData.length,
                 shrinkWrap: true,
                 physics: BouncingScrollPhysics(),
                 itemBuilder: (context, index) {
                   return CommonJobWidget(
-                    jobData: onCancelledJobData[index],
-                    isCancelled: true,
+                    jobData: cancelledJobData[index],
+                    tabType: "cancelled", // ✅ Pass tab type
                   );
                 },
               );

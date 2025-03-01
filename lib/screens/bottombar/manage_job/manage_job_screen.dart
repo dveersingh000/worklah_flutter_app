@@ -66,7 +66,7 @@ class _ManageJobScreenState extends State<ManageJobScreen>
             ),
             tabs: [
               Tab(
-                text: 'Ongoing',
+                text: 'Upcoming',
               ),
               Tab(
                 text: 'Completed',

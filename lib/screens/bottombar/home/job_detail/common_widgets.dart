@@ -654,27 +654,27 @@ class OnGoingJobAlert extends StatelessWidget {
         SizedBox(height: 20.h),
         Divider(),
         SizedBox(height: 20.h),
-        Row(
-          children: [
-            Icon(
-              Icons.payments,
-              color: AppColors.blackColor,
-            ),
-            SizedBox(width: 5.w),
-            Text(
-              'About Payment',
-              style: CustomTextInter.medium16(AppColors.blackColor),
-            ),
-          ],
-        ),
-        SizedBox(height: 5.h),
-        Text(
-          'Checking in or out significantly earlier or later than your scheduled times may result in delays in payment processing. To ensure timely payments. Please stick closely to your assigned check-in and check-out times.',
-          style: CustomTextInter.regular12(AppColors.blackColor),
-        ),
-        SizedBox(height: 30.h),
-        Divider(),
-        SizedBox(height: 30.h),
+        // Row(
+        //   children: [
+        //     Icon(
+        //       Icons.payments,
+        //       color: AppColors.blackColor,
+        //     ),
+        //     SizedBox(width: 5.w),
+        //     Text(
+        //       'About Payment',
+        //       style: CustomTextInter.medium16(AppColors.blackColor),
+        //     ),
+        //   ],
+        // ),
+        // SizedBox(height: 5.h),
+        // Text(
+        //   'Checking in or out significantly earlier or later than your scheduled times may result in delays in payment processing. To ensure timely payments. Please stick closely to your assigned check-in and check-out times.',
+        //   style: CustomTextInter.regular12(AppColors.blackColor),
+        // ),
+        // SizedBox(height: 30.h),
+        // Divider(),
+        // SizedBox(height: 30.h),
       ],
     );
   }

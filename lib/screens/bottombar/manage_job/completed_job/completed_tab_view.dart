@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -64,7 +62,7 @@ class _CompletedTabViewState extends State<CompletedTabView> {
                 itemBuilder: (context, index) {
                   return CommonJobWidget(
                     jobData: completedJobData[index],
-                    icCompleted: true,
+                    tabType: "completed", // ✅ Pass tab type
                   );
                 },
               );

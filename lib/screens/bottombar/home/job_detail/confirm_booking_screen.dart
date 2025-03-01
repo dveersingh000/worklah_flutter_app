@@ -264,15 +264,15 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                           locationData: widget.jobData['locationCoordinates'],
                         ),
                         SizedBox(height: 20.h),
-                        EmployerWidget(
-                          employerDetails: employerDetails,
-                          companyName:
-                              widget.jobData['employer']['name'].toString(),
-                          img: widget.jobData['employer']['companyLogo']
-                              .toString(),
-                          jobId: widget.jobData['_id'].toString(),
-                          jobLocation: widget.jobData['location'].toString(),
-                        ),
+                        // EmployerWidget(
+                        //   employerDetails: employerDetails,
+                        //   companyName:
+                        //       widget.jobData['employer']['name'].toString(),
+                        //   img: widget.jobData['employer']['companyLogo']
+                        //       .toString(),
+                        //   jobId: widget.jobData['_id'].toString(),
+                        //   jobLocation: widget.jobData['location'].toString(),
+                        // ),
                         SizedBox(height: 10.h),
                         Divider(),
                         SizedBox(height: 10.h),
