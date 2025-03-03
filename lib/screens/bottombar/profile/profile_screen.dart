@@ -12,6 +12,8 @@ import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/image_path.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:work_lah/utility/top_app_bar.dart';
+import 'package:work_lah/screens/bottombar/profile/bookmark_screen.dart';
+import 'package:work_lah/screens/bottombar/bottom_bar_screen.dart';
 import 'package:work_lah/screens/bottombar/home/complete_profile/complete_profile.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -51,6 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     }
   }
+
   void navigateToCompleteProfile() {
     Navigator.push(
       context,
@@ -114,7 +117,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SizedBox(height: commonHeight(context) * 0.03),
                   totalCompletedJobWidget(),
                   SizedBox(height: commonHeight(context) * 0.02),
-                  TotalCompleteJobStatus(),
+                  TotalCompleteJobStatus(
+                    completedJobs:
+                        profileData['stats']['totalCompletedJobs'] ?? 0,
+                    cancelledJobs:
+                        profileData['stats']['totalCancelledJobs'] ?? 0,
+                    noShowJobs: profileData['stats']['noShowJobs'] ?? 0,
+                  ),
                   SizedBox(height: commonHeight(context) * 0.03),
                   // recentText(),
                   // SizedBox(height: commonHeight(context) * 0.02),
@@ -122,6 +131,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   //   recentJobList: profileData['recentPastJobs'],
                   // ),
                   ViewMyJobsButton(),
+                  // 🔹 View Bookmarked Jobs Button
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BottomBarScreen(
+                                index: 0,
+                                child: BookmarkScreen(),
+                              ),
+                            ),
+                          );
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //       builder: (context) => BookmarkScreen()),
+                          // );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.themeColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 15.h),
+                        ),
+                        child: Text(
+                          'View Bookmarked Jobs',
+                          style: CustomTextInter.bold16(AppColors.whiteColor),
+                        ),
+                      ),
+                    ),
+                  ),
                   SizedBox(height: commonHeight(context) * 0.03),
                   Divider(),
                   SizedBox(height: commonHeight(context) * 0.02),

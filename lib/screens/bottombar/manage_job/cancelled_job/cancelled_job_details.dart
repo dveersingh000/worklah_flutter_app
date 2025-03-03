@@ -5,12 +5,13 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:work_lah/data/send_request.dart';
-import 'package:work_lah/screens/bottombar/home/job_detail/available_tab/available_tab_view.dart';
 import 'package:work_lah/screens/bottombar/home/job_detail/job_details_widget.dart';
 import 'package:work_lah/utility/colors.dart';
 import 'package:work_lah/utility/custom_appbar.dart';
 import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/style_inter.dart';
+import 'package:intl/intl.dart';
+import 'package:work_lah/screens/bottombar/home/job_detail/common_widgets.dart';
 
 class CancelledJobDetails extends StatefulWidget {
   final String jobID;
@@ -23,6 +24,29 @@ class CancelledJobDetails extends StatefulWidget {
 class _CancelledJobDetailsState extends State<CancelledJobDetails> {
   bool jobDetailsLoading = false;
   Map<String, dynamic> jobDetailsData = {};
+  List<dynamic> selectedShifts = [];
+
+  String formatDate(String? date) {
+    if (date == null || date.isEmpty) return "N/A";
+
+    try {
+      DateTime parsedDate;
+
+      if (date.contains(',')) {
+        parsedDate = DateFormat("dd MMM, yyyy").parse(date);
+      } else if (date.contains('/')) {
+        parsedDate = DateFormat("dd/MM/yyyy").parse(date);
+      } else if (date.contains('-')) {
+        parsedDate = DateTime.parse(date);
+      } else {
+        return "Invalid Date";
+      }
+
+      return DateFormat('d EEE MMM').format(parsedDate); 
+    } catch (e) {
+      return "Invalid Date";
+    }
+  }
 
   @override
   void initState() {
@@ -38,13 +62,30 @@ class _CancelledJobDetailsState extends State<CancelledJobDetails> {
       var response = await ApiProvider()
           .getRequest(apiUrl: '/api/jobs/details/${widget.jobID}');
       setState(() {
-        jobDetailsData = response['job'];
+        jobDetailsData = Map<String, dynamic>.from(
+            response['job']);
+
+        /// Format jobDates correctly
+        String formattedDate = formatDate(jobDetailsData['jobDates']);
+
+        /// Ensure `shift` is correctly converted to a Map<String, dynamic>
+        if (jobDetailsData['shift'] is Map) {
+          selectedShifts = [
+            {
+              ...Map<String, dynamic>.from(
+                  jobDetailsData['shift']), 
+              'date': formattedDate, 
+            }
+          ];
+        } else {
+          selectedShifts = [];
+        }
+
         jobDetailsLoading = false;
       });
     } catch (e) {
-      log('Error during response: $e');
-      final errorMessage = e is Map ? e['message'] : 'An error occurred';
-      toast(errorMessage);
+      log('Error fetching job details: $e');
+      toast(e is Map ? e['message'] : 'An error occurred');
       setState(() {
         jobDetailsLoading = false;
       });
@@ -60,7 +101,7 @@ class _CancelledJobDetailsState extends State<CancelledJobDetails> {
           children: [
             SizedBox(height: commonHeight(context) * 0.05),
             Padding(
-              padding: EdgeInsets.only(left: 10.w, right: 10.w),
+              padding: EdgeInsets.symmetric(horizontal: 10.w),
               child: CustomAppbar(title: 'Shift Summary'),
             ),
             jobDetailsLoading
@@ -74,39 +115,100 @@ class _CancelledJobDetailsState extends State<CancelledJobDetails> {
                 : Column(
                     children: [
                       SizedBox(height: commonHeight(context) * 0.03),
-                      JobNameWidget(
-                        jobTitle: jobDetailsData['jobName'].toString(),
-                        jobSubTitle: jobDetailsData['subtitle'].toString(),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20.w),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Job Name & Subtitle
+                            JobNameWidget(
+                              jobTitle: jobDetailsData['jobName']?.toString() ??
+                                  "N/A",
+                              jobSubTitle: jobDetailsData['outlet']?['name']
+                                      ?.toString() ??
+                                  "N/A",
+                            ),
+                          ],
+                        ),
                       ),
+
+                      // Job Image
                       JobIMGWidget(
-                        posterIMG: jobDetailsData['jobIcon'].toString(),
-                        // smallIMG: jobDetailsData['subtitleIcon'].toString(),
-                        showShareButton: false, // ✅ Enable sharing
+                        posterIMG: jobDetailsData['outlet']['outletImage']
+                                ?.toString() ??
+                            "",
+                        showShareButton: false, 
                         jobTitle: jobDetailsData['jobName'] ?? 'Unknown Job',
                         jobLocation:
                             jobDetailsData['location'] ?? 'Unknown Location',
                         jobUrl:
-                            "https://worklah.onrender.com/api/jobs/${jobDetailsData['_id']}",
+                            "https://yourapp.com/job/${jobDetailsData['_id']}",
                       ),
+
                       Padding(
-                        padding:
-                            EdgeInsets.only(right: 20.w, top: 10.h, left: 20.w),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 20.w, vertical: 10.h),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // JobSalary(
-                            //   salary: jobDetailsData['salary'].toString(),
-                            // ),
+                            // Job Scope Section
                             JobScopsWidget(
-                              jobScropDesc: jobDetailsData['jobScope'],
+                              jobScropDesc: jobDetailsData['jobScope'] ?? [],
                             ),
-                            availabeShiftText(),
-                            SizedBox(height: 15.h),
+
+                            // Job Requirements Section
+                            JobRequirementWidget(
+                              jobRequirements:
+                                  jobDetailsData['jobRequirements'] ?? [],
+                            ),
                           ],
                         ),
                       ),
-                      AvailableTabView(
-                        data: jobDetailsData,
-                        whereFrom: 'CancelledJobDetails',
+                      SizedBox(height: 15.h),
+                      shiftDetailsWidget(),
+
+                      SizedBox(height: 20.h),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 20.w, vertical: 10.h),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Location Section
+                            LocationWidget(
+                              locationData:
+                                  jobDetailsData['locationCoordinates'],
+                            ),
+
+                            SizedBox(height: 30.h),
+
+                            // Employer Section
+                            EmployerWidget(
+                              employerName:
+                                  jobDetailsData['employer']?['name'] ?? "N/A",
+                              employerLogo: jobDetailsData['employer']
+                                      ?['companyLogo'] ??
+                                  "",
+                              jobId:
+                                  jobDetailsData['jobId']?.toString() ?? "N/A",
+                              jobCategory:
+                                  jobDetailsData['industry']?.toString() ??
+                                      "N/A",
+                              jobLocation:
+                                  jobDetailsData['location']?.toString() ??
+                                      "N/A",
+                              jobDates: formatDate(jobDetailsData['jobDates']),
+                            ),
+
+                            SizedBox(height: 20.h),
+
+                            cancellationDetails(),
+
+                            SizedBox(height: 10.h),
+
+                            SizedBox(height: 20.h),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -116,17 +218,464 @@ class _CancelledJobDetailsState extends State<CancelledJobDetails> {
     );
   }
 
-  Widget availabeShiftText() {
+  /// "Your Selected Shifts" Header
+  Widget shiftDetailsWidget() {
+    return Container(
+      padding: EdgeInsets.all(15.w),
+      decoration: BoxDecoration(
+        color: AppColors.borderColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 5,
+            spreadRadius: 1,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.history_toggle_off_outlined,
+                    color: AppColors.blackColor,
+                    size: 20.sp,
+                  ),
+                  SizedBox(width: 5.w),
+                  Text(
+                    'Your Selected Shifts',
+                    style: CustomTextInter.medium16(AppColors.blackColor),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.person,
+                        color: Colors.grey,
+                        size: 15.sp,
+                      ),
+                      SizedBox(width: 4.w),
+                      Text(
+                        'Available Vacancy',
+                        style: CustomTextInter.medium12(AppColors.blackColor),
+                      ),
+                      SizedBox(width: 3.w),
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.black54,
+                        size: 14.sp,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.person,
+                        color: AppColors.orangeColor,
+                        size: 15.sp,
+                      ),
+                      SizedBox(width: 4.w),
+                      Text(
+                        'Standby Vacancy',
+                        style: CustomTextInter.medium12(AppColors.blackColor),
+                      ),
+                      SizedBox(width: 3.w),
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.black54,
+                        size: 14.sp,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 10.h),
+            ],
+          ),
+
+          SizedBox(height: 15.h),
+
+          /// **Date & Time Section**
+          Container(
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10.r),
+              color: AppColors.themeColor.withOpacity(0.5),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    _dateBox(jobDetailsData['jobDates'] ?? ""),
+                    SizedBox(width: 30.w),
+                    Row(
+                      children: [
+                        _timeBox(
+                            jobDetailsData['shift']['startTime'] ?? "--:--",
+                            AppColors.themeColor),
+                        SizedBox(width: 5.w),
+                        Text("to",
+                            style:
+                                CustomTextInter.medium14(AppColors.blackColor)),
+                        SizedBox(width: 5.w),
+                        _timeBox(jobDetailsData['shift']['endTime'] ?? "--:--",
+                            Colors.black),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 15.h),
+
+                /// **Shift Duration & Wage**
+                Container(
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.r),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 5,
+                        spreadRadius: 1,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.access_time,
+                              color: AppColors.themeColor, size: 18.sp),
+                          SizedBox(width: 5.w),
+                          Text(
+                              "${jobDetailsData['shift']['duration'] ?? '0'} hrs duration",
+                              style: CustomTextInter.medium14(
+                                  AppColors.blackColor)),
+                          Spacer(),
+                          Icon(Icons.coffee,
+                              color: AppColors.themeColor, size: 18.sp),
+                          SizedBox(width: 5.w),
+                          Text(
+                            "${jobDetailsData['shift']['breakDuration'] ?? '0'} break (${jobDetailsData['shift']['breakPaid']})",
+                            style:
+                                CustomTextInter.medium14(AppColors.blackColor),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10.h),
+                      Row(
+                        children: [
+                          Icon(Icons.currency_exchange,
+                              color: AppColors.themeColor, size: 18.sp),
+                          SizedBox(width: 5.w),
+                          Text(
+                            "${jobDetailsData['shift']['totalWage'] ?? '0'} (${jobDetailsData['shift']['payRate'] ?? '0'}/hr)",
+                            style:
+                                CustomTextInter.medium14(AppColors.blackColor),
+                          ),
+                        ],
+                      ),
+                      Divider(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.check_circle,
+                              color: Colors.green, size: 18.sp),
+                          SizedBox(width: 5.w),
+                          Text("Confirmed",
+                              style: CustomTextInter.bold16(Colors.green)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// **Time Box UI**
+  Widget _timeBox(String time, Color bgColor) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.r),
+        color: bgColor,
+      ),
+      child: Text(
+        time,
+        style: CustomTextInter.bold14(Colors.white),
+      ),
+    );
+  }
+
+  /// **Date Box UI**
+  Widget _dateBox(String? date) {
+    if (date == null || date.isEmpty) {
+      return Text("Invalid Date",
+          style: CustomTextInter.medium12(AppColors.redColor));
+    }
+
+    try {
+      DateTime parsedDate;
+
+      if (date.contains(',')) {
+        // Format: "02 Mar, 2025"
+        parsedDate = DateFormat("dd MMM, yyyy").parse(date);
+      } else if (date.contains('/')) {
+        // Format: "06/11/2024"
+        parsedDate = DateFormat("dd/MM/yyyy").parse(date);
+      } else if (date.contains('-')) {
+        // Format: "2024-11-06"
+        parsedDate = DateTime.parse(date);
+      } else {
+        return Text("Invalid Date",
+            style: CustomTextInter.medium12(AppColors.redColor));
+      }
+
+      String day = DateFormat('d').format(parsedDate);
+      String weekday = DateFormat('EEE').format(parsedDate);
+      String month = DateFormat('MMM').format(parsedDate);
+
+      return Container(
+        width: 80.w,
+        padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.r),
+          color: Colors.grey[200],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(width: 5.w),
+            Text(
+              day,
+              style: CustomTextInter.bold33(AppColors.blackColor),
+            ),
+            SizedBox(width: 5.w),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(weekday,
+                    style: CustomTextInter.medium12(AppColors.blackColor)),
+                Text(month,
+                    style: CustomTextInter.medium12(AppColors.blackColor)),
+              ],
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      return Text("Invalid Date",
+          style: CustomTextInter.medium12(AppColors.redColor));
+    }
+  }
+
+  /// **Vacancy Info**
+  Widget _vacancyInfo(IconData icon, String text, Color color) {
     return Row(
       children: [
-        Icon(
-          Icons.history_toggle_off_outlined,
-          color: AppColors.blackColor,
+        Icon(icon, color: color, size: 14.sp),
+        SizedBox(width: 4.w),
+        Text(text, style: CustomTextInter.medium12(color)),
+      ],
+    );
+  }
+
+  /// **Cancellation Details Widget**
+  Widget cancellationDetails() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // "Your Penalty" Box Label
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: AppColors.redColor.withOpacity(0.2), // Light red background
+            borderRadius: BorderRadius.circular(20.r), // Rounded edges
+          ),
+          child: Text(
+            "Your Penalty",
+            style: CustomTextInter.bold14(AppColors.redColor),
+          ),
         ),
-        SizedBox(width: 5.w),
-        Text(
-          'Cancelled Shifts',
-          style: CustomTextInter.medium16(AppColors.blackColor),
+        SizedBox(height: 10.h),
+        // Penalty Label & Amount
+        Row(
+          children: [
+            Text(
+              jobDetailsData['penaltyLabel'] ?? "No Penalty",
+              style: CustomTextInter.medium14(AppColors.blackColor),
+            ),
+
+            // Dashed Line (Manual Implementation)
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10.w),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    15, 
+                    (index) => Container(
+                      width: 4.w, 
+                      height: 1.5.h, 
+                      margin: EdgeInsets.symmetric(horizontal: 2.w),
+                      color: Colors.grey, 
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Penalty Amount (e.g., "$5 Penalty")
+            Text(
+              jobDetailsData['penalty'] ?? "N/A",
+              style: CustomTextInter.bold14(AppColors.redColor),
+            ),
+          ],
+        ),
+        SizedBox(height: 15.h),
+        Divider(),
+        SizedBox(height: 15.h),
+
+        // Cancellation Reason Section
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // **Reason Title (Rounded Box)**
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+              child: Text(
+                "Reason",
+                style: CustomTextInter.bold14(AppColors.whiteColor),
+              ),
+            ),
+            SizedBox(height: 10.h),
+
+            // **Container for Reason Topic & MC Certificate**
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.r),
+                color: Colors.grey[200], 
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // **Labels for Reason & MC Certificate**
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Reason Topic",
+                        style: CustomTextInter.medium14(AppColors.blackColor),
+                      ),
+                      if (jobDetailsData['reason'] == "Medical" &&
+                          jobDetailsData['medicalCertificate'] != null)
+                        Text(
+                          "MC Certificate",
+                          style: CustomTextInter.medium14(AppColors.blackColor),
+                        ),
+                    ],
+                  ),
+                  SizedBox(height: 5.h),
+
+                  // **Row for Reason Topic & MC Certificate**
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // **Reason Topic Box**
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 10.h, horizontal: 12.w),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10.r),
+                            color: Colors.white, 
+                            border: Border.all(
+                                color: Colors.black12), 
+                          ),
+                          child: Text(
+                            jobDetailsData['reason'] ?? "Not Provided",
+                            textAlign: TextAlign.center,
+                            style: CustomTextInter.bold14(AppColors.blackColor),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10.w),
+
+                      // **Show MC Certificate Box if Reason is Medical**
+                      if (jobDetailsData['reason'] == "Medical" &&
+                          jobDetailsData['medicalCertificate'] != null)
+                        GestureDetector(
+                          onTap: () {
+                            // TODO: Open MC certificate
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 10.h, horizontal: 12.w),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10.r),
+                              color: Colors.white,
+                              border: Border.all(color: AppColors.themeColor),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.image,
+                                    color: AppColors.themeColor, size: 18.sp),
+                                SizedBox(width: 5.w),
+                                Text(
+                                  "MC Certificate",
+                                  style: CustomTextInter.bold14(
+                                      AppColors.themeColor),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+
+                  SizedBox(height: 10.h),
+
+                  // **Described Reason Box**
+                  Container(
+                    padding: EdgeInsets.all(12.w),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10.r),
+                      color: Colors.white, 
+                      border: Border.all(color: Colors.black12), 
+                    ),
+                    child: Text(
+                      jobDetailsData['describedReason'] ??
+                          "No additional details provided",
+                      style: CustomTextInter.medium14(AppColors.blackColor),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );

@@ -44,6 +44,12 @@ Future<void> saveUserData(Map<String, dynamic> userJson) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String userData = jsonEncode(userJson);
   await prefs.setString('user', userData);
+  
+  // ✅ Store userId separately for quick access
+  if (userJson.containsKey('_id')) {
+    await prefs.setString('userId', userJson['_id']);
+    // print('✅ userId saved separately: ${userJson['_id']}');
+  }
 }
 
 Future<UserModel?> getUserData() async {

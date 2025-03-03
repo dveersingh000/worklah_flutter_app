@@ -40,6 +40,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     for (var shiftGroup in availableShiftsData) {
       String date = shiftGroup['date'] ?? 'Unknown Date';
       for (var shift in shiftGroup['shifts']) {
+        // print("📌 Checking Shift: $shift");
         if (shift['isSelected'] == true) {
           selectedShifts.add({
             ...shift,
@@ -322,10 +323,15 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                       height: 50.h,
                                       child: ElevatedButton(
                                         onPressed: () {
+                                          List<dynamic> selectedShifts =
+                                              getSelectedShifts();
+                                          if (selectedShifts.isEmpty) {
+                                            // **Show toast message if no shift is selected**
+                                            toast(
+                                                "Please select at least one shift before proceeding.");
+                                            return; // Stop further execution
+                                          }
                                           if (profileCompleted) {
-                                            List<dynamic> selectedShifts =
-                                                getSelectedShifts();
-
                                             // ✅ Wrap with BottomBarScreen so it includes the bottom navigation bar
                                             Navigator.push(
                                               context,

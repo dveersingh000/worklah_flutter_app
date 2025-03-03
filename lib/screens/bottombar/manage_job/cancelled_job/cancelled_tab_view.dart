@@ -15,7 +15,7 @@ class CancelledTabView extends StatefulWidget {
 
 class _CancelledTabViewState extends State<CancelledTabView> {
   bool isCancelledJobLoading = false;
-  var cancelledJobData = [];
+  List<dynamic> cancelledJobData = [];
 
   @override
   void initState() {

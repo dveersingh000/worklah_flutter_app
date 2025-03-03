@@ -21,22 +21,35 @@ class CommonJobWidget extends StatelessWidget {
     required this.jobData,
     required this.tabType,
   });
+  /// **Format Date for UI Display**
+  String formatDate(String? date) {
+    if (date == null || date.isEmpty) return "N/A";
+    try {
+      return DateFormat('dd MMM, yy').format(
+        DateFormat('dd MMM, yy').parse(date),
+      );
+    } catch (e) {
+      return "Invalid Date";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Format Job Date
-    String jobDate =
-        DateFormat('dd MMM, yy').format(DateTime.parse(jobData['jobDate']));
-
-    // Format Shift Start & End Time
-    String shiftStartTime = jobData['shiftStartTime'];
-    String shiftEndTime = jobData['shiftEndTime'];
+    // **Extract Data from API Response**
+    String jobDate = formatDate(jobData['jobDate'] ?? jobData['cancelledAt']);
+    String shiftStartTime = jobData['shiftStartTime'] ?? "--:--";
+    String shiftEndTime = jobData['shiftEndTime'] ?? "--:--";
+    String totalWage = jobData['totalWage'] ?? "\$0";
+    String ratePerHour = jobData['ratePerHour'] ?? "\$0/hr";
+    String penalty = jobData['penalty'] ?? "-";
+    String penaltyLabel = jobData['penaltyLabel'] ?? "";
+    String reason = jobData['reason'] ?? "No Reason Provided";
 
     // Determine status label & color
     String statusText = "";
     Color statusColor = Colors.transparent;
     Color statusTextColor = Colors.white;
-    Widget? penaltyWidget;
+    Widget? extraWidget;
 
     if (tabType == "completed") {
       statusText = "Completed";
@@ -46,12 +59,12 @@ class CommonJobWidget extends StatelessWidget {
       statusText = "Cancelled";
       statusColor = Colors.redAccent;
       statusTextColor = Colors.red;
-      penaltyWidget = _buildPenaltyWidget(jobData['penaltyAmount']);
+      extraWidget  = _buildPenaltyWidget(penalty);
     } else if (tabType == "no-show") {
       statusText = "No-Show";
       statusColor = Colors.redAccent;
       statusTextColor = Colors.red;
-      penaltyWidget = _buildPenaltyWidget(jobData['penaltyAmount']);
+      extraWidget  = _buildPenaltyWidget(penalty);
     }
 
     return GestureDetector(
@@ -62,10 +75,17 @@ class CommonJobWidget extends StatelessWidget {
           //   CompletedJobDetails(jobID: jobData['applicationId']),
           // );
         } else if (tabType == "cancelled") {
-          moveToNext(
-            context,
-            CancelledJobDetails(jobID: jobData['applicationId']),
-          );
+          Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => BottomBarScreen(
+            index: 0, // ✅ Set the default tab index (Home or correct index)
+            child: CancelledJobDetails(
+              jobID: jobData['applicationId'],
+            ),
+          ),
+        ),
+      );
         } else if (tabType == "no-show") {
           // moveToNext(
           //   context,
@@ -97,8 +117,15 @@ class CommonJobWidget extends StatelessWidget {
           ),
         ),
 
-        // Job Card UI
-        Stack(
+        // **Job Card UI**
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 15.w),
+            padding: EdgeInsets.only(bottom: 15.h), // Increased spacing
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.black, // Dark background
+            ),
+            child: Stack(
           children: [
             // Background Image
             ClipRRect(
@@ -119,7 +146,7 @@ class CommonJobWidget extends StatelessWidget {
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                     colors: [
-                      Colors.black.withOpacity(0.6),
+                      Colors.black.withOpacity(0.9),
                       Colors.transparent,
                     ],
                   ),
@@ -129,7 +156,7 @@ class CommonJobWidget extends StatelessWidget {
 
             // Job Name & Outlet
             Positioned(
-              top: 15.h,
+              top: 5.h,
               left: 20.w,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,7 +185,7 @@ class CommonJobWidget extends StatelessWidget {
 
             // **Share & Options Button inside white circular container**
             Positioned(
-              top: 15.h,
+              top: 5.h,
               right: 20.w,
               child: Row(
                 children: [
@@ -186,26 +213,39 @@ class CommonJobWidget extends StatelessWidget {
             ),
 
             // **Status Badge for Completed, Cancelled, or No-Show**
-            if (tabType != "upcoming")
+            if (tabType == "cancelled")
               Positioned(
-                top: 15.h,
-                right: 70.w,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(60),
-                    color: statusColor.withOpacity(0.2),
-                  ),
-                  child: Text(
-                    statusText,
-                    style: CustomTextInter.medium14(statusTextColor),
+                  top: 50.h,
+                  right: 20.w,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      // Cancelled Label
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 3.h),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(60),
+                          color: Colors.redAccent.withOpacity(0.5),
+                        ),
+                        child: Text(
+                          statusText,
+                          style: CustomTextInter.bold14(Colors.white),
+                        ),
+                      ),
+                      SizedBox(height: 5.h),
+
+                      // Penalty Label
+                      if (penaltyLabel.isNotEmpty)
+                        Text(
+                          penaltyLabel,
+                          style: CustomTextInter.medium12(Colors.white),
+                        ),
+                    ],
                   ),
                 ),
-              ),
-
             // Shift Section - Stacked Label & Timing
             Positioned(
-              bottom: 20.h,
+              bottom: 1.h,
               left: 20.w,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,20 +280,21 @@ class CommonJobWidget extends StatelessWidget {
             // Wage & Pay Rate for Ongoing & Completed Jobs
             if (tabType == "upcoming" || tabType == "completed")
               Positioned(
-                bottom: 10.h,
+                bottom: 1.h,
                 right: 20.w,
                 child: _buildWageWidget(jobData['totalWage'], jobData['ratePerHour']),
               ),
 
             // Penalty for Cancelled & No-Show Jobs
-            if (penaltyWidget != null)
+            if (extraWidget  != null)
               Positioned(
-                bottom: 10.h,
+                bottom: 1.h,
                 right: 20.w,
-                child: penaltyWidget,
+                child: extraWidget,
               ),
           ],
         ),
+          ),
       ],
     ),
     );
@@ -262,7 +303,7 @@ class CommonJobWidget extends StatelessWidget {
   // **Helper Function: Build Time Container**
   Widget _buildTimeContainer(String time, Color bgColor) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         color: bgColor,
@@ -299,16 +340,38 @@ class CommonJobWidget extends StatelessWidget {
 
   // **Helper Function: Build Penalty Widget**
   Widget _buildPenaltyWidget(String penaltyAmount) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.redAccent.withOpacity(0.2),
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      // Penalty Label with $ Icon
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.currency_exchange, color: Colors.red, size: 16.sp),
+          SizedBox(width: 5.w),
+          Text(
+            "Penalty",
+            style: CustomTextInter.medium12(Colors.red),
+          ),
+        ],
       ),
-      child: Text(
-        "- $penaltyAmount",
-        style: CustomTextInter.medium12(Colors.red),
+      SizedBox(height: 5.h),
+
+      // Penalty Amount Box
+      Container(
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.red),
+          color: Colors.white,
+        ),
+        child: Text(
+          penaltyAmount,
+          style: CustomTextInter.medium12(Colors.red),
+        ),
       ),
-    );
-  }
+    ],
+  );
+}
+
 }

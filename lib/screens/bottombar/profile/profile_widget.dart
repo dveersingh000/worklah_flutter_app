@@ -9,7 +9,6 @@ import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/image_path.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:work_lah/utility/syle_poppins.dart';
-import 'package:work_lah/screens/bottombar/profile/cashout/CashOutHomeScreen.dart';
 
 class AccountStatusAndId extends StatelessWidget {
   final String acStatus;
@@ -247,7 +246,10 @@ class MyWalletWidget extends StatelessWidget {
 }
 
 class TotalCompleteJobStatus extends StatelessWidget {
-  const TotalCompleteJobStatus({super.key});
+  final int completedJobs;
+  final int cancelledJobs;
+  final int noShowJobs;
+  const TotalCompleteJobStatus({super.key, this.completedJobs = 0, this.cancelledJobs = 0, this.noShowJobs = 0});
 
   @override
   Widget build(BuildContext context) {
@@ -274,9 +276,9 @@ class TotalCompleteJobStatus extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            commonStatusRow(AppColors.completedColor, '0', 'Completed Jobs'),
-            commonStatusRow(AppColors.canceledColor, '0', 'Cancelled Jobs'),
-            commonStatusRow(AppColors.noShowColor, '0', 'No Show'),
+            commonStatusRow(AppColors.completedColor, completedJobs.toString(), 'Completed Jobs'),
+            commonStatusRow(AppColors.canceledColor, cancelledJobs.toString(), 'Cancelled Jobs'),
+            commonStatusRow(AppColors.noShowColor, noShowJobs.toString(), 'No Show'),
           ],
         ),
       ],

@@ -55,7 +55,7 @@ class _OnGoingTabViewState extends State<OnGoingTabView> {
           )
         : onGoingJobData.isEmpty
             ? Center(
-                child: Text('No OnGoing Job Found!'),
+                child: Text('No Upcoming Job Found!'),
               )
             : ListView.separated(
                 separatorBuilder: (context, index) => SizedBox(height: 20.h),

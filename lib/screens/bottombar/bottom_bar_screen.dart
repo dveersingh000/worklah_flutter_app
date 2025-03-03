@@ -10,7 +10,8 @@ import 'package:work_lah/screens/model/user_model.dart';
 import 'package:work_lah/utility/colors.dart';
 import 'package:work_lah/utility/shared_prefs.dart';
 import 'package:work_lah/utility/style_inter.dart';
-import 'package:work_lah/screens/bottombar/home/qr_scanner/scan_qr_screen.dart';
+// import 'package:work_lah/screens/bottombar/home/qr_scanner/scan_qr_screen.dart';
+import 'package:work_lah/screens/bottombar/home/qr_scanner/qr_screen.dart';
 
 class BottomBarScreen extends StatefulWidget {
   final int index;
@@ -150,7 +151,7 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
             if (_page == 2) {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ScanQRScreen()),
+                MaterialPageRoute(builder: (context) => ShiftSelectionScreen()),
               );
             }
           });
