@@ -1,162 +1,122 @@
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: ShiftSelectionScreen(),
-    );
-  }
-}
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:work_lah/utility/colors.dart';
+import 'package:work_lah/utility/style_inter.dart';
+import 'package:work_lah/utility/top_app_bar.dart';
+import 'package:work_lah/utility/display_function.dart';
+import 'package:work_lah/screens/bottombar/home/qr_scanner/scan_qr_screen.dart';
 
 class ShiftSelectionScreen extends StatelessWidget {
+  const ShiftSelectionScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: Container(
-          padding: EdgeInsets.all(8),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.blue,
-              borderRadius: BorderRadius.circular(8),
+      backgroundColor: AppColors.whiteColor,
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10.w),
+        child: Column(
+          children: [
+            SizedBox(height: commonHeight(context) * 0.05),
+
+            // ✅ Top AppBar
+            TopAppBar(title: 'Select Shift'),
+
+            SizedBox(height: commonHeight(context) * 0.02),
+
+            // ✅ Main Content Scrollable
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Text(
+                        'Choose Your Job Shift To Clock In',
+                        style: CustomTextInter.bold18(AppColors.blackColor),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Center(
+                      child: Text(
+                        'Remember: Checking in/out too early or late may delay payment. Stick to your assigned times for timely processing.',
+                        style: CustomTextInter.regular14(AppColors.subTitColor),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+
+                    // ✅ Job Shift Date
+                    Text(
+                      '08 Nov, 25',
+                      style: CustomTextInter.semiBold16(AppColors.blackColor),
+                    ),
+                    SizedBox(height: 8.h),
+
+                    // ✅ Shift Cards
+                    ShiftCard(
+                      jobTitle: 'Tray Collector',
+                      location: 'Jurong street',
+                      company: 'RIGHT SERVICE PTE. LTD.',
+                      restaurant: 'Food Dynasty',
+                      duration: '3 hrs duration',
+                      rate: '\$100 (\$20/hr)',
+                      breakTime: '1 hr break (Unpaid)',
+                      startTime: '11:00 AM',
+                      endTime: '02:00 PM',
+                      isActive: true,
+                    ),
+                    SizedBox(height: 16.h),
+
+                    ShiftCard(
+                      jobTitle: 'Cashier',
+                      location: 'Jurong street',
+                      company: 'RIGHT SERVICE PTE. LTD.',
+                      restaurant: '2-Celios',
+                      duration: '3 hrs duration',
+                      rate: '\$100 (\$20/hr)',
+                      breakTime: '1 hr break (Unpaid)',
+                      startTime: '06:00 PM',
+                      endTime: '09:00 PM',
+                      isActive: false,
+                    ),
+                    SizedBox(height: 16.h),
+
+                    // ✅ Another Job Shift Date
+                    Text(
+                      '28 Dec, 25',
+                      style: CustomTextInter.semiBold16(AppColors.blackColor),
+                    ),
+                    SizedBox(height: 8.h),
+
+                    ShiftCard(
+                      jobTitle: 'Kitchen Helper',
+                      location: 'Orchard Road',
+                      company: 'Star Services PTE. LTD.',
+                      restaurant: 'Pizza Palace',
+                      duration: '4 hrs duration',
+                      rate: '\$120 (\$30/hr)',
+                      breakTime: '30 min break (Paid)',
+                      startTime: '10:00 AM',
+                      endTime: '02:00 PM',
+                      isActive: true,
+                    ),
+
+                    SizedBox(height: 100.h), // Space for bottom navigation
+                  ],
+                ),
+              ),
             ),
-            child: Icon(Icons.arrow_back, color: Colors.white),
-          ),
+          ],
         ),
-        title: Text(
-          'Select Shift',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.notifications_outlined, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Choose Your Job Shift To Clock In',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Remember: Checking in/out too early or late may delay payment. Stick to your assigned times for timely processing.',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 16),
-              Text(
-                '08 Nov, 25',
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 16,
-                ),
-              ),
-              SizedBox(height: 8),
-              ShiftCard(
-                jobTitle: 'Tray Collector',
-                location: 'Jurong street',
-                company: 'RIGHT SERVICE PTE. LTD.',
-                restaurant: 'Food Dynasty',
-                duration: '3 hrs duration',
-                rate: '\$100 (\$20/hr)',
-                breakTime: '1 hr break (Unpaid)',
-                startTime: '11:00 AM',
-                endTime: '02:00 PM',
-                isActive: true,
-              ),
-              SizedBox(height: 16),
-              ShiftCard(
-                jobTitle: 'Cashier',
-                location: 'Jurong street',
-                company: 'RIGHT SERVICE PTE. LTD.',
-                restaurant: '2-Celios',
-                duration: '3 hrs duration',
-                rate: '\$100 (\$20/hr)',
-                breakTime: '1 hr break (Unpaid)',
-                startTime: '06:00 PM',
-                endTime: '09:00 PM',
-                isActive: false,
-              ),
-              SizedBox(height: 16),
-              Text(
-                '28 Dec, 25',
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 16,
-                ),
-              ),
-              SizedBox(height: 100), // Space for bottom navigation
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: 2,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: 'My Jobs',
-          ),
-          BottomNavigationBarItem(
-            icon: Container(
-              padding: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.blue[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(Icons.grid_view, color: Colors.blue),
-            ),
-            label: 'Clock in/Out',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet),
-            label: 'E-wallet',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }
 }
 
-class ShiftCard extends StatelessWidget {
+class ShiftCard extends StatefulWidget {
   final String jobTitle;
   final String location;
   final String company;
@@ -182,195 +142,166 @@ class ShiftCard extends StatelessWidget {
   });
 
   @override
+  _ShiftCardState createState() => _ShiftCardState();
+}
+
+class _ShiftCardState extends State<ShiftCard> {
+  bool isHovered = false;
+  bool isClockedIn = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    jobTitle == 'Tray Collector' ? Icons.restaurant : Icons.point_of_sale,
-                    color: Colors.black,
-                  ),
-                ),
-                SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      jobTitle,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.location_on, color: Colors.blue, size: 16),
-                        SizedBox(width: 4),
-                        Text(
-                          location,
-                          style: TextStyle(
-                            color: Colors.grey[700],
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(Icons.business, color: Colors.grey, size: 16),
-                SizedBox(width: 8),
-                Text(
-                  company,
-                  style: TextStyle(
-                    color: Colors.grey[700],
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-            Divider(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.store, color: Colors.blue, size: 20),
-                    SizedBox(width: 8),
-                    Text(restaurant),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Icon(Icons.access_time, color: Colors.blue, size: 20),
-                    SizedBox(width: 8),
-                    Text(duration),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.attach_money, color: Colors.blue, size: 20),
-                    SizedBox(width: 8),
-                    Text(rate),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Icon(Icons.free_breakfast, color: Colors.blue, size: 20),
-                    SizedBox(width: 8),
-                    Text(breakTime),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          startTime,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: Text(
-                          'to',
-                          style: TextStyle(
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          endTime,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: isActive ? () {} : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isActive ? Colors.green : Colors.grey,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Clock In',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(Icons.qr_code_scanner, color: Colors.white, size: 20),
-                      Icon(Icons.chevron_right, color: Colors.white, size: 20),
-                    ],
-                  ),
-                ),
-              ],
+    return GestureDetector(
+      onTap: () {
+        // ✅ Navigate to ScanQRScreen() when the job card is tapped
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ScanQRScreen()),
+        );
+      },
+      child: MouseRegion(
+      onEnter: (_) => setState(() => isHovered = true),
+      onExit: (_) => setState(() => isHovered = false),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isHovered ? AppColors.themeColor : Colors.grey.shade300, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 5,
             ),
           ],
         ),
+        child: Padding(
+          padding: EdgeInsets.all(12.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ✅ Job Title & Location
+              Row(
+                children: [
+                  Icon(Icons.work, color: AppColors.themeColor, size: 20),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      widget.jobTitle,
+                      style: CustomTextInter.bold16(AppColors.blackColor),
+                    ),
+                  ),
+                  Icon(Icons.location_on, color: Colors.grey, size: 16),
+                  SizedBox(width: 4.w),
+                  Text(
+                    widget.location,
+                    style: CustomTextInter.regular14(Colors.grey),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8.h),
+
+              Text(
+                widget.company,
+                style: CustomTextInter.regular14(Colors.grey),
+              ),
+              Divider(),
+
+              // ✅ Details Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _iconText(Icons.restaurant, widget.restaurant),
+                  _iconText(Icons.access_time, widget.duration),
+                ],
+              ),
+              SizedBox(height: 8.h),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _iconText(Icons.attach_money, widget.rate),
+                  _iconText(Icons.free_breakfast, widget.breakTime),
+                ],
+              ),
+              SizedBox(height: 12.h),
+
+              // ✅ Shift Timing & Clock In Button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _timeChip(widget.startTime, AppColors.themeColor,),
+                  Text('to', style: CustomTextInter.regular14(Colors.grey)),
+                  _timeChip(widget.endTime, Colors.black, ),
+                  _clockInOutButton(),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+    );
+  }
+
+  Widget _iconText(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, color: AppColors.themeColor, size: 18),
+        SizedBox(width: 6.w),
+        Text(text, style: CustomTextInter.regular14(Colors.black)),
+      ],
+    );
+  }
+
+ Widget _timeChip(String time, Color bgColor) {
+  return Container(
+    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h), // Reduced padding
+    decoration: BoxDecoration(
+      color: bgColor,
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Text(
+      time,
+      style: CustomTextInter.bold12(Colors.white), // Reduced font size
+    ),
+  );
+}
+
+  // ✅ Clock In/Out Button with Toggle Functionality
+  Widget _clockInOutButton() {
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          isClockedIn = !isClockedIn; // Toggle Clock In/Out state
+        });
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isClockedIn ? Colors.red : Colors.green, // Toggle Color
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            isClockedIn ? 'Clock Out' : 'Clock In', // Toggle Text
+            style: CustomTextInter.bold12(Colors.white),
+          ),
+          SizedBox(width: 4.w),
+          Icon(
+            Icons.qr_code_scanner,
+            color: Colors.white,
+            size: 16,
+          ),
+          Icon(
+            Icons.chevron_right,
+            color: Colors.white,
+            size: 16,
+          ),
+        ],
       ),
     );
   }
 }
+

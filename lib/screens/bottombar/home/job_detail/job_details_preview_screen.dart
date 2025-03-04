@@ -48,111 +48,131 @@ class _JobDetailsPreviewScreenState extends State<JobDetailsPreviewScreen> {
 
   /// **Book Selected Shifts API**
   Future<void> bookSelectedShifts() async {
-  if (widget.selectedShifts.isEmpty) {
-    toast("No shifts selected. Please select at least one shift.");
-    return;
-  }
+    if (widget.selectedShifts.isEmpty) {
+      toast("No shifts selected. Please select at least one shift.");
+      return;
+    }
 
-  setState(() {
-    isBooking = true;
-  });
+    if (!termsAccepted || !medicalWaiverAccepted) {
+      toast("Please accept the terms and medical waiver to proceed.");
+      return;
+    }
 
-  String? userId = await getUserId();
-  if (userId == null) {
-    toast("User not found. Please log in again.");
+    setState(() {
+      isBooking = true;
+    });
+
+    String? userId = await getUserId();
+    if (userId == null) {
+      toast("User not found. Please log in again.");
+      setState(() {
+        isBooking = false;
+      });
+      return;
+    }
+
+    for (var shift in widget.selectedShifts) {
+      try {
+        // Format the date properly - convert from "2 Sun Mar" to a proper date format
+        String formattedDate = "";
+
+        try {
+          // Parse the date string into proper format
+          // Create a more standard date string
+          String rawDate = shift['date'];
+
+          // If the date is in "2 Sun Mar" format, convert it to proper format
+          if (rawDate.contains(" ")) {
+            List<String> dateParts = rawDate.split(" ");
+            if (dateParts.length >= 3) {
+              // Assuming format is "day weekday month"
+              int day = int.tryParse(dateParts[0]) ?? 1;
+              String month = dateParts[2]; // Mar
+
+              // Get current year
+              int year = DateTime.now().year;
+
+              // Convert month name to month number
+              Map<String, int> monthMap = {
+                "Jan": 1,
+                "Feb": 2,
+                "Mar": 3,
+                "Apr": 4,
+                "May": 5,
+                "Jun": 6,
+                "Jul": 7,
+                "Aug": 8,
+                "Sep": 9,
+                "Oct": 10,
+                "Nov": 11,
+                "Dec": 12
+              };
+
+              int monthNum = monthMap[month] ?? 1;
+
+              // Create DateTime object
+              DateTime dateObj = DateTime(year, monthNum, day);
+
+              // Format the date in ISO format (YYYY-MM-DD)
+              formattedDate = DateFormat('yyyy-MM-dd').format(dateObj);
+            } else {
+              formattedDate = rawDate; // Use as is if we can't parse
+            }
+          } else {
+            formattedDate =
+                rawDate; // Use as is if it's not in the expected format
+          }
+        } catch (e) {
+          log("Error formatting date: $e");
+          formattedDate = shift['date']; // Fallback to original date
+        }
+
+        // Now use the formatted date in the API call
+        var response = await ApiProvider().postRequest(
+          apiUrl: "/api/jobs/${widget.jobDetailsData['id']}/apply",
+          data: {
+            "userId": userId,
+            "jobId": widget.jobDetailsData['id'],
+            "shiftId": shift['id'],
+            "date": formattedDate,
+            "isStandby": shift['isStandby'] ?? false,
+          },
+        );
+
+        if (response != null &&
+            response['message'] == "Shift booking successful") {
+          toast("Shift booked successfully!");
+
+          // ✅ Navigate to Booking Confirmation Screen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BottomBarScreen(
+                index: 0,
+                child: BookingConfirmationScreen(
+                  jobDetails: widget.jobDetailsData,
+                ),
+              ),
+            ),
+          );
+
+          return; // ✅ Stop further execution after successful booking
+        } else if (response['error'] ==
+            "You have already applied for this shift.") {
+          toast("You have already applied for this shift.");
+        } else {
+          toast(response['error'] ?? "Failed to book shift.");
+        }
+      } catch (e) {
+        log("Error while booking shift: $e");
+        toast("An error occurred. Please try again.");
+      }
+    }
+
     setState(() {
       isBooking = false;
     });
-    return;
   }
-
-  for (var shift in widget.selectedShifts) {
-    try {
-      // Format the date properly - convert from "2 Sun Mar" to a proper date format
-      String formattedDate = "";
-      
-      try {
-        // Parse the date string into proper format
-        // Create a more standard date string
-        String rawDate = shift['date'];
-        
-        // If the date is in "2 Sun Mar" format, convert it to proper format
-        if (rawDate.contains(" ")) {
-          List<String> dateParts = rawDate.split(" ");
-          if (dateParts.length >= 3) {
-            // Assuming format is "day weekday month"
-            int day = int.tryParse(dateParts[0]) ?? 1;
-            String month = dateParts[2]; // Mar
-            
-            // Get current year
-            int year = DateTime.now().year;
-            
-            // Convert month name to month number
-            Map<String, int> monthMap = {
-              "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
-              "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12
-            };
-            
-            int monthNum = monthMap[month] ?? 1;
-            
-            // Create DateTime object
-            DateTime dateObj = DateTime(year, monthNum, day);
-            
-            // Format the date in ISO format (YYYY-MM-DD)
-            formattedDate = DateFormat('yyyy-MM-dd').format(dateObj);
-          } else {
-            formattedDate = rawDate; // Use as is if we can't parse
-          }
-        } else {
-          formattedDate = rawDate; // Use as is if it's not in the expected format
-        }
-      } catch (e) {
-        log("Error formatting date: $e");
-        formattedDate = shift['date']; // Fallback to original date
-      }
-
-      // Now use the formatted date in the API call
-      var response = await ApiProvider().postRequest(
-        apiUrl: "/api/jobs/${widget.jobDetailsData['id']}/apply",
-        data: {
-          "userId": userId,
-          "jobId": widget.jobDetailsData['id'],
-          "shiftId": shift['id'],
-          "date": formattedDate,
-          "isStandby": shift['isStandby'] ?? false,
-        },
-      );
-
-      if (response != null && response['message'] == "Shift booking successful") {
-        toast("Shift booked successfully!");
-
-        // ✅ Navigate to Booking Confirmation Screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BottomBarScreen(
-              index: 0,
-              child: BookingConfirmationScreen(
-                jobDetails: widget.jobDetailsData,
-              ),
-            ),
-          ),
-        );
-
-        return; // ✅ Stop further execution after successful booking
-      } else {
-        toast(response['error'] ?? "Failed to book shift.");
-      }
-    } catch (e) {
-      log("Error while booking shift: $e");
-      toast("An error occurred. Please try again.");
-    }
-  }
-
-  setState(() {
-    isBooking = false;
-  });
-}
 
   @override
   Widget build(BuildContext context) {
@@ -468,20 +488,29 @@ class _JobDetailsPreviewScreenState extends State<JobDetailsPreviewScreen> {
                                   SizedBox(
                                     width: double.infinity,
                                     child: ElevatedButton(
-                                      onPressed: isBooking ? null : bookSelectedShifts,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: isBooking
-                  ? CircularProgressIndicator(color: Colors.white)
-                  : Text(
-                      "Confirm Booking",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
+                                      onPressed: (isBooking ||
+                                              !termsAccepted ||
+                                              !medicalWaiverAccepted)
+                                          ? null
+                                          : bookSelectedShifts,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        padding:
+                                            EdgeInsets.symmetric(vertical: 12),
+                                      ),
+                                      child: isBooking
+                                          ? CircularProgressIndicator(
+                                              color: Colors.white)
+                                          : Text(
+                                              "Confirm Booking",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 16),
+                                            ),
                                     ),
                                   ),
                                   SizedBox(height: 10.h),

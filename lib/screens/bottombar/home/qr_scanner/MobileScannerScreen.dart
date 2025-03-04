@@ -18,55 +18,86 @@ class _MobileScannerScreenState extends State<MobileScannerScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 50), // Spacing from the top
-
-          // QR Scanner View
-          SizedBox(
-            height: 200,
-            width: 200,
-            child: MobileScanner(
-              controller: cameraController,
-              onDetect: (capture) async {
-                final List<Barcode> barcodes = capture.barcodes;
-                for (final barcode in barcodes) {
-                  String? scannedData = barcode.rawValue;
-                  if (scannedData != null) {
-                    var response = await ApiProvider().postRequest(
-                      apiUrl: '/api/qr/scan',
-                      data: {"qrData": scannedData},
-                    );
-
-                    if (response['success']) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => SelectJobScreen(
-                              jobData: response['jobDetails']),
-                        ),
-                    );
-                  }
-                }
-                }
-              },
-            ),
-          ),
-
-          const Spacer(),
-
-          // Restart Scanner Button
+          SizedBox(height: 50), // Spacing from the top
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: ElevatedButton(
-              onPressed: () {
-                cameraController.start();
-              },
-              child: const Text("Scan Again"),
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: IconButton(
+                icon: Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ),
+          SizedBox(height: 20),
+          
+          // QR Scanner View Centered
+          Expanded(
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white, width: 2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: MobileScanner(
+                      controller: cameraController,
+                      onDetect: (capture) async {
+                        final List<Barcode> barcodes = capture.barcodes;
+                        for (final barcode in barcodes) {
+                          String? scannedData = barcode.rawValue;
+                          if (scannedData != null) {
+                            var response = await ApiProvider().postRequest(
+                              apiUrl: '/api/qr/scan',
+                              data: {"qrData": scannedData},
+                            );
+                            if (response['success']) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => SelectJobScreen(
+                                        jobData: response['jobDetails'])),
+                              );
+                            }
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
 
-          const SizedBox(height: 30),
+          SizedBox(height: 30),
+
+          // Restart Scanner Button Centered
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Align(
+              alignment: Alignment.center,
+              child: ElevatedButton(
+                onPressed: () {
+                  cameraController.start();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                ),
+                child: Text(
+                  "Scan Again",
+                  style: TextStyle(color: Colors.black, fontSize: 16),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

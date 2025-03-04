@@ -52,7 +52,7 @@ class AvailableShiftsPreviewWidget extends StatelessWidget {
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10.r),
-        color: Colors.white,
+        color: AppColors.themeColor.withOpacity(0.3),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),

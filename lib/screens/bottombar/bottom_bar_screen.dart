@@ -116,6 +116,8 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
         return HomeScreen();
       case 1:
         return ManageJobScreen();
+      case 2:
+        return ShiftSelectionScreen();
       case 3:
         return EWalletScreen();
       case 4:
@@ -148,12 +150,6 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
         } else {
           setState(() {
             _page = value;
-            if (_page == 2) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ShiftSelectionScreen()),
-              );
-            }
           });
         }
       },

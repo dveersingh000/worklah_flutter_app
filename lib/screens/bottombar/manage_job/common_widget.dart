@@ -21,6 +21,25 @@ class CommonJobWidget extends StatelessWidget {
     required this.jobData,
     required this.tabType,
   });
+
+  Future<void> _deleteJob(BuildContext context, String jobId) async {
+  try {
+    var response = await ApiProvider().deleteRequest(
+      apiUrl: "/api/jobs/$jobId",
+    );
+
+    if (response != null && response['message'] == "Job deleted successfully") {
+      toast("Job deleted successfully!");
+      Navigator.pop(context); // Go back after delete
+    } else {
+      toast(response['error'] ?? "Failed to delete job.");
+    }
+  } catch (e) {
+    toast("Error deleting job: $e");
+  }
+}
+
+
   /// **Format Date for UI Display**
   String formatDate(String? date) {
     if (date == null || date.isEmpty) return "N/A";
@@ -59,12 +78,12 @@ class CommonJobWidget extends StatelessWidget {
       statusText = "Cancelled";
       statusColor = Colors.redAccent;
       statusTextColor = Colors.red;
-      extraWidget  = _buildPenaltyWidget(penalty);
+      extraWidget = _buildPenaltyWidget(penalty);
     } else if (tabType == "no-show") {
       statusText = "No-Show";
       statusColor = Colors.redAccent;
       statusTextColor = Colors.red;
-      extraWidget  = _buildPenaltyWidget(penalty);
+      extraWidget = _buildPenaltyWidget(penalty);
     }
 
     return GestureDetector(
@@ -76,16 +95,16 @@ class CommonJobWidget extends StatelessWidget {
           // );
         } else if (tabType == "cancelled") {
           Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => BottomBarScreen(
-            index: 0, // ✅ Set the default tab index (Home or correct index)
-            child: CancelledJobDetails(
-              jobID: jobData['applicationId'],
+            context,
+            MaterialPageRoute(
+              builder: (context) => BottomBarScreen(
+                index: 0, // ✅ Set the default tab index (Home or correct index)
+                child: CancelledJobDetails(
+                  jobID: jobData['applicationId'],
+                ),
+              ),
             ),
-          ),
-        ),
-      );
+          );
         } else if (tabType == "no-show") {
           // moveToNext(
           //   context,
@@ -93,31 +112,31 @@ class CommonJobWidget extends StatelessWidget {
           // );
         } else {
           Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => BottomBarScreen(
-            index: 0, // ✅ Set the default tab index (Home or correct index)
-            child: OnGoingJobDetails(
-              jobID: jobData['applicationId'],
+            context,
+            MaterialPageRoute(
+              builder: (context) => BottomBarScreen(
+                index: 0, // ✅ Set the default tab index (Home or correct index)
+                child: OnGoingJobDetails(
+                  jobID: jobData['applicationId'],
+                ),
+              ),
             ),
-          ),
-        ),
-      );
+          );
         }
       },
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Job Date Header
-        Padding(
-          padding: EdgeInsets.only(left: 15.w, top: 10.h, bottom: 5.h),
-          child: Text(
-            jobDate,
-            style: CustomTextInter.medium14(AppColors.blackColor),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Job Date Header
+          Padding(
+            padding: EdgeInsets.only(left: 15.w, top: 10.h, bottom: 5.h),
+            child: Text(
+              jobDate,
+              style: CustomTextInter.medium14(AppColors.blackColor),
+            ),
           ),
-        ),
 
-        // **Job Card UI**
+          // **Job Card UI**
           Container(
             margin: EdgeInsets.symmetric(horizontal: 15.w),
             padding: EdgeInsets.only(bottom: 15.h), // Increased spacing
@@ -126,179 +145,247 @@ class CommonJobWidget extends StatelessWidget {
               color: Colors.black, // Dark background
             ),
             child: Stack(
-          children: [
-            // Background Image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.network(
-                '${ApiProvider().baseUrl}${jobData['outletImage']}',
-                width: double.infinity,
-                height: commonHeight(context) * 0.22,
-                fit: BoxFit.cover,
-              ),
-            ),
-
-            // Dark Overlay
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.9),
-                      Colors.transparent,
-                    ],
+              children: [
+                // Background Image
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    '${ApiProvider().baseUrl}${jobData['outletImage']}',
+                    width: double.infinity,
+                    height: commonHeight(context) * 0.22,
+                    fit: BoxFit.cover,
                   ),
                 ),
-              ),
-            ),
 
-            // Job Name & Outlet
-            Positioned(
-              top: 5.h,
-              left: 20.w,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Job Name
-                  Row(
-                    children: [
-                      Icon(Icons.work, color: Colors.white, size: 18.sp),
-                      SizedBox(width: 5.w),
-                      Text(
-                        jobData['jobName'],
-                        style: CustomTextInter.bold16(AppColors.whiteColor),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 5.h),
-
-                  // Outlet Name
-                  Text(
-                    jobData['outletName'],
-                    style: CustomTextInter.medium12(AppColors.whiteColor),
-                  ),
-                ],
-              ),
-            ),
-
-            // **Share & Options Button inside white circular container**
-            Positioned(
-              top: 5.h,
-              right: 20.w,
-              child: Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(6.w),
+                // Dark Overlay
+                Positioned.fill(
+                  child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.9),
+                          Colors.transparent,
+                        ],
+                      ),
                     ),
-                    child: Icon(Icons.share, color: Colors.black, size: 22.sp),
                   ),
-                  SizedBox(width: 10.w),
-                  PopupMenuButton<String>(
-                    icon: Icon(Icons.more_vert, color: Colors.white, size: 22.sp),
-                    onSelected: (String result) {
-                      // Handle menu selection
-                    },
-                    itemBuilder: (BuildContext context) => [
-                      PopupMenuItem<String>(value: 'view', child: Text('View')),
-                      PopupMenuItem<String>(value: 'delete', child: Text('Delete')),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+                ),
 
-            // **Status Badge for Completed, Cancelled, or No-Show**
-            if (tabType == "cancelled")
-              Positioned(
-                  top: 50.h,
-                  right: 20.w,
+                // Job Name & Outlet
+                Positioned(
+                  top: 5.h,
+                  left: 20.w,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Cancelled Label
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 3.h),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(60),
-                          color: Colors.redAccent.withOpacity(0.5),
-                        ),
-                        child: Text(
-                          statusText,
-                          style: CustomTextInter.bold14(Colors.white),
-                        ),
+                      // Job Name
+                      Row(
+                        children: [
+                          Icon(Icons.work, color: Colors.white, size: 18.sp),
+                          SizedBox(width: 5.w),
+                          Text(
+                            jobData['jobName'],
+                            style: CustomTextInter.bold16(AppColors.whiteColor),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 5.h),
 
-                      // Penalty Label
-                      if (penaltyLabel.isNotEmpty)
-                        Text(
-                          penaltyLabel,
-                          style: CustomTextInter.medium12(Colors.white),
-                        ),
-                    ],
-                  ),
-                ),
-            // Shift Section - Stacked Label & Timing
-            Positioned(
-              bottom: 1.h,
-              left: 20.w,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Shift Label
-                  Row(
-                    children: [
-                      Icon(Icons.access_time, color: Colors.white, size: 16.sp),
-                      SizedBox(width: 5.w),
+                      // Outlet Name
                       Text(
-                        'Shift',
+                        jobData['outletName'],
                         style: CustomTextInter.medium12(AppColors.whiteColor),
                       ),
                     ],
                   ),
-                  SizedBox(height: 8.h),
+                ),
 
-                  // Shift Start & End Time
-                  Row(
+                // **Share & Options Button inside white circular container**
+                Positioned(
+                  top: 5.h,
+                  right: 20.w,
+                  child: Row(
                     children: [
-                      _buildTimeContainer(shiftStartTime, Colors.blueAccent),
-                      SizedBox(width: 8.w),
-                      Text('to', style: CustomTextInter.medium12(AppColors.whiteColor)),
-                      SizedBox(width: 8.w),
-                      _buildTimeContainer(shiftEndTime, Colors.black54),
+                      Container(
+                        padding: EdgeInsets.all(6.w),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child:
+                            Icon(Icons.share, color: Colors.black, size: 22.sp),
+                      ),
+                      SizedBox(width: 10.w),
+                      PopupMenuButton<String>(
+                        icon: Icon(Icons.more_vert,
+                            color: Colors.white, size: 22.sp),
+                        onSelected: (String result) async {
+                          if (result == 'view') {
+                            Widget screen =
+                                SizedBox(); // Default to avoid uninitialized error
+
+                            if (tabType == "upcoming" || tabType == "ongoing") {
+                              screen = OnGoingJobDetails(
+                                  jobID: jobData['applicationId']);
+                            } else if (tabType == "completed") {
+                              // screen = CompletedJobDetails(
+                              //     jobID: jobData['applicationId']);
+                            } else if (tabType == "cancelled") {
+                              screen = CancelledJobDetails(
+                                  jobID: jobData['applicationId']);
+                            } else if (tabType == "no-show") {
+                              // screen = NoShowJobDetails(
+                              //     jobID: jobData['applicationId']);
+                            }
+
+                            if (screen is! SizedBox) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BottomBarScreen(
+                                    index: 0,
+                                    child: screen,
+                                  ),
+                                ),
+                              );
+                            }
+                          } else if (result == 'delete') {
+                            _confirmDelete(context, jobData['applicationId']);
+                          }
+                        },
+                        itemBuilder: (BuildContext context) => [
+                          PopupMenuItem<String>(
+                              value: 'view', child: Text('View')),
+                          PopupMenuItem<String>(
+                              value: 'delete', child: Text('Delete')),
+                        ],
+                      ),
                     ],
                   ),
-                ],
-              ),
+                ),
+
+                // **Status Badge for Completed, Cancelled, or No-Show**
+                if (tabType == "cancelled")
+                  Positioned(
+                    top: 50.h,
+                    right: 20.w,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        // Cancelled Label
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 12.w, vertical: 3.h),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(60),
+                            color: Colors.redAccent.withOpacity(0.5),
+                          ),
+                          child: Text(
+                            statusText,
+                            style: CustomTextInter.bold14(Colors.white),
+                          ),
+                        ),
+                        SizedBox(height: 5.h),
+
+                        // Penalty Label
+                        if (penaltyLabel.isNotEmpty)
+                          Text(
+                            penaltyLabel,
+                            style: CustomTextInter.medium12(Colors.white),
+                          ),
+                      ],
+                    ),
+                  ),
+                // Shift Section - Stacked Label & Timing
+                Positioned(
+                  bottom: 1.h,
+                  left: 20.w,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Shift Label
+                      Row(
+                        children: [
+                          Icon(Icons.access_time,
+                              color: Colors.white, size: 16.sp),
+                          SizedBox(width: 5.w),
+                          Text(
+                            'Shift',
+                            style:
+                                CustomTextInter.medium12(AppColors.whiteColor),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
+
+                      // Shift Start & End Time
+                      Row(
+                        children: [
+                          _buildTimeContainer(
+                              shiftStartTime, Colors.blueAccent),
+                          SizedBox(width: 8.w),
+                          Text('to',
+                              style: CustomTextInter.medium12(
+                                  AppColors.whiteColor)),
+                          SizedBox(width: 8.w),
+                          _buildTimeContainer(shiftEndTime, Colors.black54),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Wage & Pay Rate for Ongoing & Completed Jobs
+                if (tabType == "upcoming" || tabType == "completed")
+                  Positioned(
+                    bottom: 1.h,
+                    right: 20.w,
+                    child: _buildWageWidget(
+                        jobData['totalWage'], jobData['ratePerHour']),
+                  ),
+
+                // Penalty for Cancelled & No-Show Jobs
+                if (extraWidget != null)
+                  Positioned(
+                    bottom: 1.h,
+                    right: 20.w,
+                    child: extraWidget,
+                  ),
+              ],
             ),
-
-            // Wage & Pay Rate for Ongoing & Completed Jobs
-            if (tabType == "upcoming" || tabType == "completed")
-              Positioned(
-                bottom: 1.h,
-                right: 20.w,
-                child: _buildWageWidget(jobData['totalWage'], jobData['ratePerHour']),
-              ),
-
-            // Penalty for Cancelled & No-Show Jobs
-            if (extraWidget  != null)
-              Positioned(
-                bottom: 1.h,
-                right: 20.w,
-                child: extraWidget,
-              ),
-          ],
-        ),
           ),
-      ],
-    ),
+        ],
+      ),
     );
   }
+
+  void _confirmDelete(BuildContext context, String jobId) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("Confirm Delete"),
+        content: Text("Are you sure you want to delete this job? This action cannot be undone."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), // Cancel action
+            child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close the dialog
+              await _deleteJob(context, jobId); // Call delete function
+            },
+            child: Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   // **Helper Function: Build Time Container**
   Widget _buildTimeContainer(String time, Color bgColor) {
@@ -340,38 +427,37 @@ class CommonJobWidget extends StatelessWidget {
 
   // **Helper Function: Build Penalty Widget**
   Widget _buildPenaltyWidget(String penaltyAmount) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      // Penalty Label with $ Icon
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.currency_exchange, color: Colors.red, size: 16.sp),
-          SizedBox(width: 5.w),
-          Text(
-            "Penalty",
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Penalty Label with $ Icon
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.currency_exchange, color: Colors.red, size: 16.sp),
+            SizedBox(width: 5.w),
+            Text(
+              "Penalty",
+              style: CustomTextInter.medium12(Colors.red),
+            ),
+          ],
+        ),
+        SizedBox(height: 5.h),
+
+        // Penalty Amount Box
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.red),
+            color: Colors.white,
+          ),
+          child: Text(
+            penaltyAmount,
             style: CustomTextInter.medium12(Colors.red),
           ),
-        ],
-      ),
-      SizedBox(height: 5.h),
-
-      // Penalty Amount Box
-      Container(
-        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.red),
-          color: Colors.white,
         ),
-        child: Text(
-          penaltyAmount,
-          style: CustomTextInter.medium12(Colors.red),
-        ),
-      ),
-    ],
-  );
-}
-
+      ],
+    );
+  }
 }

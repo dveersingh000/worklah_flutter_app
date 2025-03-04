@@ -30,22 +30,31 @@ class _AvailableShiftsWidgetState extends State<AvailableShiftsWidget> {
   void toggleShiftSelection(int sectionIndex, int shiftIndex) {
     setState(() {
       shiftData[sectionIndex]['shifts'][shiftIndex]['isSelected'] =
-          !(shiftData[sectionIndex]['shifts'][shiftIndex]['isSelected'] ?? false);
+          !(shiftData[sectionIndex]['shifts'][shiftIndex]['isSelected'] ??
+              false);
     });
   }
-  void toggleSectionExpansion(String date) {
-    setState(() {
-      expandedSections[date] = !(expandedSections[date] ?? false);
-    });
-  }
+
+  void toggleSectionExpansion(String date, int sectionIndex) {
+  setState(() {
+    expandedSections[date] = !(expandedSections[date] ?? false);
+
+    // ✅ Reset selection when expanding again
+    if (expandedSections[date] == true) {
+      for (var shift in shiftData[sectionIndex]['shifts']) {
+        shift['isSelected'] = false; // ✅ Reset selection
+      }
+    }
+  });
+}
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-      color: AppColors.themeColor.withOpacity(0.5), // ✅ Blue Background
-      borderRadius: BorderRadius.circular(20.r),
-    ),
+      // decoration: BoxDecoration(
+      //   color: AppColors.themeColor.withOpacity(0.5), // ✅ Blue Background
+      //   borderRadius: BorderRadius.circular(20.r),
+      // ),
       padding: EdgeInsets.symmetric(vertical: 5.h, horizontal: 5.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,14 +75,13 @@ class _AvailableShiftsWidgetState extends State<AvailableShiftsWidget> {
                 children: [
                   // 📅 Shift Date Header with Dropdown
                   GestureDetector(
-                    onTap: () => toggleSectionExpansion(shiftGroup["date"]),
+                    onTap: () => toggleSectionExpansion(shiftGroup["date"], index),
                     child: Container(
-                      margin:
-                          EdgeInsets.symmetric(vertical: 5.h),
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 5.w, vertical: 5.h),
+                      margin: EdgeInsets.symmetric(vertical: 5.h),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.themeColor.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(10.r),
                         boxShadow: [
                           BoxShadow(
@@ -178,7 +186,7 @@ class _AvailableShiftsWidgetState extends State<AvailableShiftsWidget> {
                           padding: EdgeInsets.all(12.w),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10.r),
-                            color: Colors.white,
+                            color: AppColors.themeColor.withOpacity(0.3),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.1),
@@ -205,8 +213,8 @@ class _AvailableShiftsWidgetState extends State<AvailableShiftsWidget> {
                                       _timeBox(shift['endTime']),
                                     ],
                                   ),
-                                  _availabilityBox(shift['vacancy'].toString(), shift['standbyVacancy'].toString()),
-
+                                  _availabilityBox(shift['vacancy'].toString(),
+                                      shift['standbyVacancy'].toString()),
                                 ],
                               ),
                               Divider(),
@@ -222,8 +230,7 @@ class _AvailableShiftsWidgetState extends State<AvailableShiftsWidget> {
                                           AppColors.blackColor)),
                                   Spacer(),
                                   Icon(Icons.coffee,
-                                      color: AppColors.themeColor,
-                                      size: 18.sp),
+                                      color: AppColors.themeColor, size: 18.sp),
                                   SizedBox(width: 5.w),
                                   Text(
                                     "${shift['breakDuration']} hr break (${shift['breakPaid']})",
@@ -319,14 +326,15 @@ Widget _availabilityBox(String applied, String standby) {
     mainAxisAlignment: MainAxisAlignment.end,
     children: [
       _pillWithIcon(
-          applied, AppColors.fieldHintColor, Icons.person, Colors.grey),
-      SizedBox(width: 3.w), // Reduced spacing
+          applied, applied != "0" ? Colors.green : AppColors.fieldHintColor, 
+          Icons.person, applied != "0" ? Colors.green : Colors.grey),
+      SizedBox(width: 3.w), 
       _pillWithIcon(
-          standby, AppColors.orangeColor, Icons.person, AppColors.orangeColor),
+          standby, standby != "0" ? AppColors.orangeColor : AppColors.fieldHintColor, 
+          Icons.person, standby != "0" ? AppColors.orangeColor : Colors.grey),
     ],
   );
 }
-
 Widget _pillWithIcon(
     String text, Color bgColor, IconData icon, Color iconColor) {
   return Container(
@@ -407,13 +415,20 @@ class JobIMGWidget extends StatelessWidget {
   final String jobTitle;
   final String jobLocation;
   final String jobUrl;
-  const JobIMGWidget({super.key, this.posterIMG, this.outletImage, this.showShareButton = false, required this.jobTitle, required this.jobLocation, required this.jobUrl});
+  const JobIMGWidget(
+      {super.key,
+      this.posterIMG,
+      this.outletImage,
+      this.showShareButton = false,
+      required this.jobTitle,
+      required this.jobLocation,
+      required this.jobUrl});
 
   /// ✅ Function to Share Job Details
   void shareJobDetails() {
     String shareText =
         "🔥 Check out this job: $jobTitle\n📍 Location: $jobLocation\n🔗 Apply Now: $jobUrl";
-    
+
     Share.share(shareText);
   }
 
@@ -514,6 +529,7 @@ class JobScopsWidget extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(right: 10.w, left: 10.w),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start, // ✅ Aligns text properly
         children: [
           Icon(
             Icons.circle,
@@ -521,10 +537,15 @@ class JobScopsWidget extends StatelessWidget {
             size: 6.sp,
           ),
           SizedBox(width: 8.w),
-          Text(
-            text,
-            style: CustomTextInter.light14(AppColors.blackColor),
-          )
+          Expanded(
+            // ✅ Prevents overflow by wrapping text
+            child: Text(
+              text,
+              style: CustomTextInter.light14(AppColors.blackColor),
+              softWrap: true, // ✅ Ensures text wraps
+              overflow: TextOverflow.visible, // ✅ Avoids truncation
+            ),
+          ),
         ],
       ),
     );

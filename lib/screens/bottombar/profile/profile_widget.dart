@@ -4,11 +4,14 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'dart:io';
 import 'package:work_lah/utility/colors.dart';
 import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/image_path.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:work_lah/utility/syle_poppins.dart';
+import 'package:work_lah/data/send_request.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AccountStatusAndId extends StatelessWidget {
   final String acStatus;
@@ -71,12 +74,14 @@ class AccountStatusAndId extends StatelessWidget {
   }
 }
 
-class ProfileDetails extends StatelessWidget {
+class ProfileDetails extends StatefulWidget {
   final bool profileCompleted;
   final String profileIMG;
   final String userName;
   final String mobileNo;
   final String joinDate;
+  // final VoidCallback onEditProfile;
+
   const ProfileDetails({
     super.key,
     required this.profileCompleted,
@@ -84,7 +89,61 @@ class ProfileDetails extends StatelessWidget {
     required this.userName,
     required this.mobileNo,
     required this.joinDate,
+    // required this.onEditProfile,
   });
+
+  @override
+  State<ProfileDetails> createState() => _ProfileDetailsState();
+}
+
+class _ProfileDetailsState extends State<ProfileDetails> {
+  File? _selectedImage;
+  bool _isUploading = false;
+
+  // **Function to Pick Image from Gallery or Camera**
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+
+      // Upload the selected image
+      _uploadProfilePicture(_selectedImage!);
+    }
+  }
+
+  // **Function to Upload Profile Picture**
+  Future<void> _uploadProfilePicture(File imageFile) async {
+  setState(() {
+    _isUploading = true;
+  });
+
+  try {
+    var response = await ApiProvider().uploadFile(
+      apiUrl: '/api/profile/update-picture', // ✅ Your API endpoint
+      file: imageFile,
+      fieldName: 'profileImage', // ✅ The key expected by your backend
+    );
+
+    if (response['success']) {
+      setState(() {
+        _isUploading = false;
+      });
+      toast('Profile picture updated successfully!');
+    } else {
+      throw Exception(response['message']);
+    }
+  } catch (e) {
+    toast('Error updating profile picture: $e');
+    setState(() {
+      _isUploading = false;
+    });
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -97,59 +156,100 @@ class ProfileDetails extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
+                // **Edit Icon on Top Right**
                 Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Image.asset(ImagePath.editIMG),
+                  right: -10.w,
+                  top: -5.h,
+                  child: GestureDetector(
+                    onTap: _pickImage, // **Open Image Picker on Tap**
+                    child: Container(
+                      padding: EdgeInsets.all(6.w),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Icon(Icons.edit, color: Colors.black, size: 18.sp),
+                    ),
+                  ),
                 ),
+
+                // **Profile Picture**
                 DottedBorder(
                   borderType: BorderType.RRect,
                   radius: Radius.circular(50),
                   dashPattern: [4, 4],
-                  borderPadding: EdgeInsets.all(-1),
                   color: AppColors.blackColor,
                   strokeWidth: 1,
-                  child: profileCompleted
-                      ? Image.network(
-                          profileIMG,
-                          fit: BoxFit.fill,
-                          height: 95.h,
-                          width: 95.w,
-                        )
-                      : Image.asset(
-                          profileCompleted
-                              ? ImagePath.profilePic1
-                              : ImagePath.personIMG,
-                          fit: BoxFit.contain,
-                        ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: _selectedImage != null
+                        ? Image.file(
+                            _selectedImage!,
+                            fit: BoxFit.cover,
+                            height: 95.h,
+                            width: 95.w,
+                          )
+                        : widget.profileCompleted
+                            ? Image.network(
+                                widget.profileIMG,
+                                fit: BoxFit.cover,
+                                height: 95.h,
+                                width: 95.w,
+                              )
+                            : Image.asset(
+                                ImagePath.personIMG,
+                                fit: BoxFit.cover,
+                                height: 95.h,
+                                width: 95.w,
+                              ),
+                  ),
                 ),
+
+                // **Loading Indicator While Uploading**
+                if (_isUploading)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.4),
+                      child: Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
-          if (profileCompleted) ...[
-            Text(
-              userName,
-              style: CustomTextPopins.medium24(AppColors.blackColor),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.phone,
-                  size: 20.sp,
-                ),
-                SizedBox(width: 5.w),
-                Text(
-                  mobileNo,
-                  style: CustomTextPopins.regular12(AppColors.blackColor),
-                ),
-              ],
-            ),
-            Text(
-              'Joined $joinDate',
-              style: CustomTextPopins.regular12(AppColors.fieldHintColor),
-            ),
-          ]
+
+          // **User Name**
+          SizedBox(height: 10.h),
+          Text(
+            widget.userName,
+            style: CustomTextInter.medium24(AppColors.blackColor),
+          ),
+
+          // **Phone Number**
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.phone, size: 20.sp, color: AppColors.blackColor),
+              SizedBox(width: 5.w),
+              Text(
+                widget.mobileNo,
+                style: CustomTextInter.regular12(AppColors.blackColor),
+              ),
+            ],
+          ),
+
+          // **Join Date**
+          Text(
+            'Joined ${widget.joinDate}',
+            style: CustomTextInter.regular12(AppColors.fieldHintColor),
+          ),
         ],
       ),
     );
@@ -159,8 +259,12 @@ class ProfileDetails extends StatelessWidget {
 class MyWalletWidget extends StatelessWidget {
   final bool profileCompleted;
   final String balance;
-  const MyWalletWidget(
-      {super.key, required this.profileCompleted, required this.balance});
+
+  const MyWalletWidget({
+    super.key,
+    required this.profileCompleted,
+    required this.balance,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -170,20 +274,13 @@ class MyWalletWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         color: AppColors.blackColor,
       ),
-      padding: EdgeInsets.only(
-        left: 20.w,
-        right: 20.w,
-        top: 10.h,
-        bottom: 10.h,
-      ),
+      padding: EdgeInsets.all(15.h),
       child: Column(
         children: [
           Row(
             children: [
-              Icon(
-                Icons.account_balance_wallet_outlined,
-                color: AppColors.fieldBorderColor,
-              ),
+              Icon(Icons.account_balance_wallet_outlined,
+                  color: AppColors.fieldBorderColor),
               SizedBox(width: 5.w),
               Text(
                 'Your e-Wallet amount',
@@ -196,47 +293,10 @@ class MyWalletWidget extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  profileCompleted ? '\$$balance' : '\$0',
+                  '\$$balance', // ✅ Ensure balance is always a string
                   style: CustomTextInter.medium24(AppColors.whiteColor),
                 ),
               ),
-              // Container(
-              //   height: 35.h,
-              //   padding: EdgeInsets.only(left: 10.w, right: 10.w),
-              //   decoration: BoxDecoration(
-              //     borderRadius: BorderRadius.circular(50),
-              //     color: profileCompleted
-              //         ? AppColors.themeColor
-              //         : AppColors.textGreyColor,
-              //   ),
-              //   child: Center(
-              //     child: InkWell(
-              //       onTap: profileCompleted
-              //           ? () {
-              //               Navigator.push(
-              //                 context,
-              //                 MaterialPageRoute(
-              //                     builder: (context) => CashOutHomeScreen()),
-              //               );
-              //             }
-              //           : null,
-              //       child: Row(
-              //         children: [
-              //           Text(
-              //             'Cash Out',
-              //             style: CustomTextInter.medium12(AppColors.whiteColor),
-              //           ),
-              //           SizedBox(width: 5.w),
-              //           Icon(
-              //             Icons.arrow_outward,
-              //             color: AppColors.whiteColor,
-              //             size: 20.sp,
-              //           ),
-              //         ],
-              //       ),
-              //     ),
-              //   ),
-              // )
             ],
           ),
         ],

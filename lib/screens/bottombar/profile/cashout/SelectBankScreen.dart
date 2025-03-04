@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:work_lah/screens/bottombar/profile/cashout/CashOutSuccessScreen.dart';
+import 'package:work_lah/screens/bottombar/bottom_bar_screen.dart';
 
 class SelectBankScreen extends StatefulWidget {
   const SelectBankScreen({super.key});
@@ -119,15 +120,19 @@ class _SelectBankScreenState extends State<SelectBankScreen> {
                 ),
                 onPressed: () {
                   Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CashOutConfirmationScreen(
-                        amount: cashOutAmount,
-                        bankName: selectedBank,
-                        accountNumber: "XXXX XXXX 3456",
-                      ),
-                    ),
-                  );
+  context,
+  MaterialPageRoute(
+    builder: (context) => BottomBarScreen(
+      index: 0, // ✅ Set the correct tab index (e.g., Home or Wallet)
+      child: CashOutConfirmationScreen(
+        amount: cashOutAmount,
+        bankName: selectedBank,
+        accountNumber: "XXXX XXXX 3456",
+      ),
+    ),
+  ),
+);
+
                 },
                 child: const Text("Proceed", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
               ),

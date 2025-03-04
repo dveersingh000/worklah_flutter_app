@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:work_lah/utility/shared_prefs.dart';
+import 'dart:io';
 
 class ApiProvider {
   String baseUrl = 'https://worklah.onrender.com';
@@ -141,5 +142,32 @@ class ApiProvider {
     int statusCode = res2.statusCode;
 
     return statusCode;
+  
+  }
+  Future<Map<String, dynamic>> uploadFile({required String apiUrl, required File file, required String fieldName}) async {
+    String? loginToken = await getLoginToken();
+
+    var request = http.MultipartRequest('POST', Uri.parse('$baseUrl$apiUrl'));
+    request.headers.addAll({
+      "Authorization": "Bearer $loginToken",
+      "Accept": "application/json",
+    });
+
+    // Attach the file
+    request.files.add(await http.MultipartFile.fromPath(fieldName, file.path));
+
+    var streamedResponse = await request.send();
+    var response = await http.Response.fromStream(streamedResponse);
+
+    print("URL ::: ${"$baseUrl$apiUrl"}");
+    print("UPLOAD RESPONSE :::  ${response.body}");
+    print("CODE :::  ${response.statusCode}");
+
+    var res = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      return res;
+    } else {
+      return Future.error(res);
+    }
   }
 }

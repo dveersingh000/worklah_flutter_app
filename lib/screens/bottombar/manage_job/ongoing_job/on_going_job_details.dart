@@ -419,15 +419,27 @@ class _OnGoingJobDetailsState extends State<OnGoingJobDetails> {
 
   /// **Time Box UI**
   Widget _timeBox(String time, Color bgColor) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.r),
-        color: bgColor,
-      ),
-      child: Text(
-        time,
-        style: CustomTextInter.bold14(Colors.white),
+    return IntrinsicWidth(
+      // ✅ Makes width adaptive to text
+      child: Container(
+        constraints: BoxConstraints(
+            minWidth: 50.w, maxWidth: 80.w), // ✅ Prevents overflow
+        padding: EdgeInsets.symmetric(
+            horizontal: 8.w, vertical: 5.h), // ✅ Reduced padding
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20.r),
+          color: bgColor,
+        ),
+        child: FittedBox(
+          // ✅ Ensures text scales properly
+          fit: BoxFit.scaleDown,
+          child: Text(
+            time,
+            style: CustomTextInter.bold14(Colors.white),
+            softWrap: false, // ✅ Prevents multiline overflow
+            overflow: TextOverflow.ellipsis, // ✅ Avoids excessive expansion
+          ),
+        ),
       ),
     );
   }
@@ -435,8 +447,10 @@ class _OnGoingJobDetailsState extends State<OnGoingJobDetails> {
   /// **Date Box UI**
   Widget _dateBox(String? date) {
     if (date == null || date.isEmpty) {
-      return Text("Invalid Date",
-          style: CustomTextInter.medium12(AppColors.redColor));
+      return Text(
+        "Invalid Date",
+        style: CustomTextInter.medium12(AppColors.redColor),
+      );
     }
 
     try {
@@ -452,8 +466,10 @@ class _OnGoingJobDetailsState extends State<OnGoingJobDetails> {
         // Format: "2024-11-06"
         parsedDate = DateTime.parse(date);
       } else {
-        return Text("Invalid Date",
-            style: CustomTextInter.medium12(AppColors.redColor));
+        return Text(
+          "Invalid Date",
+          style: CustomTextInter.medium12(AppColors.redColor),
+        );
       }
 
       String day = DateFormat('d').format(parsedDate);
@@ -461,7 +477,8 @@ class _OnGoingJobDetailsState extends State<OnGoingJobDetails> {
       String month = DateFormat('MMM').format(parsedDate);
 
       return Container(
-        width: 80.w,
+        constraints:
+            BoxConstraints(minWidth: 70.w, maxWidth: 90.w), // ✅ Dynamic width
         padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.r),
@@ -469,28 +486,48 @@ class _OnGoingJobDetailsState extends State<OnGoingJobDetails> {
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min, // ✅ Prevents unnecessary space usage
           children: [
             SizedBox(width: 5.w),
-            Text(
-              day,
-              style: CustomTextInter.bold33(AppColors.blackColor),
+            FittedBox(
+              // ✅ Prevents text from overflowing
+              fit: BoxFit.scaleDown,
+              child: Text(
+                day,
+                style: CustomTextInter.bold33(AppColors.blackColor),
+              ),
             ),
             SizedBox(width: 5.w),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(weekday,
-                    style: CustomTextInter.medium12(AppColors.blackColor)),
-                Text(month,
-                    style: CustomTextInter.medium12(AppColors.blackColor)),
-              ],
+            Expanded(
+              // ✅ Ensures text inside Column fits properly
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      weekday,
+                      style: CustomTextInter.medium12(AppColors.blackColor),
+                    ),
+                  ),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      month,
+                      style: CustomTextInter.medium12(AppColors.blackColor),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       );
     } catch (e) {
-      return Text("Invalid Date",
-          style: CustomTextInter.medium12(AppColors.redColor));
+      return Text(
+        "Invalid Date",
+        style: CustomTextInter.medium12(AppColors.redColor),
+      );
     }
   }
 

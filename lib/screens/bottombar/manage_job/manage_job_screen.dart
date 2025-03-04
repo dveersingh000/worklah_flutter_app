@@ -10,6 +10,7 @@ import 'package:work_lah/utility/colors.dart';
 import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:work_lah/utility/syle_poppins.dart';
+import 'package:work_lah/utility/top_app_bar.dart';
 
 class ManageJobScreen extends StatefulWidget {
   const ManageJobScreen({super.key});
@@ -33,30 +34,21 @@ class _ManageJobScreenState extends State<ManageJobScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.whiteColor,
-      appBar: AppBar(
-        backgroundColor: AppColors.whiteColor,
-        surfaceTintColor: AppColors.whiteColor,
-        automaticallyImplyLeading: false,
-        title: Text(
-          'Manage Jobs',
-          style: CustomTextInter.medium20(AppColors.blackColor),
-        ),
-        actions: [
-          // Icon(Icons.qr_code_scanner_outlined),
-          SizedBox(width: 10.w),
-          GestureDetector(
-              onTap: () => moveToNext(context, NotificationScreen()),
-              child: Icon(
-                Icons.notifications_outlined,
-                color: AppColors.themeColor,
-              )),
-          SizedBox(width: 10.w),
-          Icon(Icons.menu_outlined),
-          SizedBox(width: 10.w),
-        ],
-        bottom: TabBar(
+  return Scaffold(
+    backgroundColor: AppColors.whiteColor,
+    body: Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10.w), // Horizontal padding
+      child: Column(
+        children: [
+          SizedBox(height: commonHeight(context) * 0.05), // Padding above TopAppBar
+
+          // ✅ Use the reusable TopAppBar
+          TopAppBar(title: 'Manage Jobs'),
+
+          SizedBox(height: commonHeight(context) * 0.02), // Padding below TopAppBar
+
+          // ✅ TabBar for job categories
+          TabBar(
             dividerColor: AppColors.dividerColor,
             indicatorColor: AppColors.themeColor,
             controller: tabController,
@@ -65,27 +57,28 @@ class _ManageJobScreenState extends State<ManageJobScreen>
               AppColors.fieldHintColor,
             ),
             tabs: [
-              Tab(
-                text: 'Upcoming',
-              ),
-              Tab(
-                text: 'Completed',
-              ),
-              Tab(
-                text: 'Cancelled',
-              ),
-            ]),
-      ),
-      body: TabBarView(
-        controller: tabController,
-        children: [
-          OnGoingTabView(),
-          CompletedTabView(),
-          CancelledTabView(),
+              Tab(text: 'Upcoming'),
+              Tab(text: 'Completed'),
+              Tab(text: 'Cancelled'),
+            ],
+          ),
+
+          Expanded(
+            child: TabBarView(
+              controller: tabController,
+              children: [
+                OnGoingTabView(),
+                CompletedTabView(),
+                CancelledTabView(),
+              ],
+            ),
+          ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 }
 
 

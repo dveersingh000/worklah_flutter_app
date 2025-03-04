@@ -111,7 +111,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
         "nricNumber": nricController.text,
       });
       UserModel? fetchedUser = await getUserData();
-      UserModel updatedUser = fetchedUser!.copyWith(profileCompleted: true);
+      UserModel updatedUser = fetchedUser!.copyWith(profileCompleted: true, gender: '');
       await saveUserData(updatedUser.toJson());
       confirmJobBooking();
     } catch (e) {

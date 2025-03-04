@@ -14,7 +14,7 @@ import 'package:work_lah/utility/style_inter.dart';
 import 'package:work_lah/utility/top_app_bar.dart';
 import 'package:work_lah/screens/bottombar/profile/bookmark_screen.dart';
 import 'package:work_lah/screens/bottombar/bottom_bar_screen.dart';
-import 'package:work_lah/screens/bottombar/home/complete_profile/complete_profile.dart';
+import 'package:work_lah/screens/bottombar/profile/UpdateProfileScreen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool profileCompleted;
@@ -37,13 +37,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       isProfileLoading = true;
     });
+
     try {
       var response =
           await ApiProvider().getRequest(apiUrl: '/api/profile/stats');
-      setState(() {
-        profileData = response;
-        isProfileLoading = false;
-      });
+
+      if (response != null) {
+        setState(() {
+          profileData = response; // ✅ Assign API response directly
+          isProfileLoading = false;
+        });
+      } else {
+        throw Exception("Invalid response received");
+      }
     } catch (e) {
       log('Error during Res: $e');
       final errorMessage = e is Map ? e['message'] : 'An error occurred';
@@ -54,14 +60,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  void navigateToCompleteProfile() {
+  void navigateToUpdateProfile() {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CompleteProfile(
-          jobData: {}, // ✅ Empty job data since it's from ProfileScreen
-          shiftID: '',
-          jobDATE: '',
+        builder: (context) => BottomBarScreen(
+          index: 0, // Ensure correct bottom bar index
+          child: UpdateProfileScreen(),
         ),
       ),
     );
@@ -93,7 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SizedBox(height: commonHeight(context) * 0.02),
                   AccountStatusAndId(
                     acStatus: profileData['accountStatus'].toString(),
-                    onEditProfile: navigateToCompleteProfile,
+                    onEditProfile: navigateToUpdateProfile,
                   ),
                   SizedBox(height: commonHeight(context) * 0.04),
                   ProfileDetails(
@@ -106,7 +111,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SizedBox(height: commonHeight(context) * 0.03),
                   MyWalletWidget(
                     profileCompleted: widget.profileCompleted,
-                    balance: profileData['wallet']['balance'].toString(),
+                    balance: profileData.containsKey('wallet') &&
+                            profileData['wallet'] != null
+                        ? profileData['wallet']['balance']
+                            .toString() // ✅ Safely access balance
+                        : '0.00', // ✅ Default value if wallet does not exist
                   ),
                   SizedBox(height: commonHeight(context) * 0.03),
                   DashedDivider(),
@@ -231,11 +240,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: CustomTextInter.regular16(AppColors.blackColor),
                     textAlign: TextAlign.center,
                   ),
+                  SizedBox(height: commonHeight(context) * 0.03),
+                  // **Edit Profile Button for Incomplete Users**
+                  ElevatedButton(
+                    onPressed: navigateToUpdateProfile,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.themeColor,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.r)),
+                      padding: EdgeInsets.symmetric(
+                          vertical: 15.h, horizontal: 30.w),
+                    ),
+                    child: Text('Edit Profile',
+                        style: CustomTextInter.bold16(AppColors.whiteColor)),
+                  )
                 ],
               ),
             ),
             SizedBox(height: commonHeight(context) * 0.05),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBookmarkedJobsButton() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    BottomBarScreen(index: 0, child: BookmarkScreen())),
+          ),
+          style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.themeColor,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.r))),
+          child: Text('View Bookmarked Jobs',
+              style: CustomTextInter.bold16(AppColors.whiteColor)),
         ),
       ),
     );
