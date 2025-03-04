@@ -251,15 +251,15 @@ class CommonJobWidget extends StatelessWidget {
                                 ),
                               );
                             }
-                          } else if (result == 'delete') {
-                            _confirmDelete(context, jobData['applicationId']);
+                          } else if (result == 'cancel') {
+                            _confirmCancel(context, jobData['applicationId']);
                           }
                         },
                         itemBuilder: (BuildContext context) => [
                           PopupMenuItem<String>(
                               value: 'view', child: Text('View')),
                           PopupMenuItem<String>(
-                              value: 'delete', child: Text('Delete')),
+                              value: 'cancel', child: Text('Cancel')),
                         ],
                       ),
                     ],
@@ -361,24 +361,36 @@ class CommonJobWidget extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context, String jobId) {
+  void _confirmCancel(BuildContext context, String jobId) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text("Confirm Delete"),
-        content: Text("Are you sure you want to delete this job? This action cannot be undone."),
+        title: Text("Confirm Cancellation"),
+        content: Text("Are you sure you want to cancel this job?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context), // Cancel action
-            child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+            child: Text("No", style: TextStyle(color: Colors.grey)),
           ),
           TextButton(
-            onPressed: () async {
+            onPressed: () {
               Navigator.pop(context); // Close the dialog
-              await _deleteJob(context, jobId); // Call delete function
+
+              // ✅ Navigate to Cancelled Job Details instead of deleting
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BottomBarScreen(
+                    index: 0, // ✅ Ensure correct tab index
+                    child: CancelledJobDetails(
+                      jobID: jobId, // Pass job ID to cancelled job details
+                    ),
+                  ),
+                ),
+              );
             },
-            child: Text("Delete", style: TextStyle(color: Colors.red)),
+            child: Text("Yes, Cancel", style: TextStyle(color: Colors.red)),
           ),
         ],
       );
