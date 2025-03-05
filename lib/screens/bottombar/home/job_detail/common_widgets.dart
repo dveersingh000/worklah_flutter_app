@@ -168,7 +168,7 @@ class EmployerWidget extends StatelessWidget {
       return 'assets/images/companyLogo.png'; // Default logo
     }
     // Ensure a complete URL
-    const String baseUrl = "http://localhost:3000"; // Replace with actual base URL
+    const String baseUrl = "https://worklah.onrender.com"; // Replace with actual base URL
     return logoUrl.startsWith("http") ? logoUrl : "$baseUrl$logoUrl";
   }
 
