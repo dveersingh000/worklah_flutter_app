@@ -33,9 +33,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> getUserLocalData() async {
     UserModel? fetchedUser = await getUserData();
+    if (fetchedUser != null) {
+    try {
+      // ✅ Fetch latest profile data from API
+      var response = await ApiProvider().getRequest(apiUrl: '/api/profile/stats');
+
+      if (response != null && response['profilePicture'] != null) {
+        // ✅ Update user model with latest profile picture
+        fetchedUser = fetchedUser.copyWith(profilePicture: response['profilePicture']);
+
+        // ✅ Save updated user data in local storage
+        await saveUserData(fetchedUser.toJson());
+
+        // ✅ Debugging: Check new profile picture
+        log("Updated profile picture: ${fetchedUser.profilePicture}");
+      }
+    } catch (e) {
+      log("Error fetching latest user profile: $e");
+    }
+  }
+    // ✅ Ensure userModel is not null
+  if (fetchedUser != null) {
     setState(() {
-      userModel = fetchedUser!;
+      userModel = fetchedUser;
     });
+  }
   }
 
   void getHomeData() async {
@@ -73,7 +95,7 @@ Widget build(BuildContext context) {
     body: Column(
       children: [
         SizedBox(height: commonHeight(context) * 0.05),
-        homeDataLoading
+        homeDataLoading || userModel == null
             ? SizedBox()
             : TopBarWidget(
                 userName: userModel!.fullName,

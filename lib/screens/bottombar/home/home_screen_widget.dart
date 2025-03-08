@@ -15,20 +15,28 @@ import 'package:work_lah/utility/image_path.dart';
 import 'package:work_lah/utility/shared_prefs.dart';
 import 'package:work_lah/screens/model/user_model.dart';
 import 'package:work_lah/screens/bottombar/bottom_bar_screen.dart';
+import 'package:work_lah/screens/login_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 // import 'package:work_lah/screens/bottombar/home/qr_scanner/scan_qr_screen.dart';
 
 class TopBarWidget extends StatefulWidget {
   final String userName;
-  final String imgPath;
+  String imgPath;
 
-  const TopBarWidget(
-      {super.key, required this.userName, required this.imgPath});
+  TopBarWidget({super.key, required this.userName, required this.imgPath});
 
   @override
   _TopBarWidgetState createState() => _TopBarWidgetState();
 }
 
 class _TopBarWidgetState extends State<TopBarWidget> {
+  final ImagePicker _picker = ImagePicker();
   final GlobalKey _menuKey = GlobalKey();
   OverlayEntry? _overlayEntry;
 
@@ -39,6 +47,192 @@ class _TopBarWidgetState extends State<TopBarWidget> {
     } else {
       _overlayEntry!.remove();
       _overlayEntry = null;
+    }
+  }
+
+  // ✅ Pick Image & Upload
+  Future<void> _pickAndUploadImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      if (kIsWeb) {
+        // ✅ Web: Convert XFile to bytes
+        Uint8List imageBytes = await pickedFile.readAsBytes();
+        await _uploadProfilePictureWeb(imageBytes);
+      } else {
+        // ✅ Mobile: Use File Path
+        File imageFile = File(pickedFile.path);
+        await _uploadProfilePicture(imageFile);
+      }
+    }
+  }
+
+  // ✅ Upload Profile Picture (Mobile)
+  Future<void> _uploadProfilePicture(File imageFile) async {
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse("http://localhost:3000/api/profile/upload-profile-picture"),
+    );
+
+    // ✅ Fetch Token from SharedPreferences
+  String? token = await getLoginToken();
+  if (token == null || token.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("User is not authenticated. Please login again.")),
+    );
+    return;
+  }
+
+  // ✅ Ensure Bearer Token Format
+  request.headers['Authorization'] = "Bearer $token";
+    request.files.add(
+      await http.MultipartFile.fromPath("profilePicture", imageFile.path),
+    );
+
+    await _sendRequest(request);
+  }
+
+  // ✅ Upload Profile Picture (Web)
+  Future<void> _uploadProfilePictureWeb(Uint8List imageBytes) async {
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse("http://localhost:3000/api/profile/upload-profile-picture"),
+    );
+
+    // ✅ Fetch Token from SharedPreferences
+  String? token = await getLoginToken();
+  if (token == null || token.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("User is not authenticated. Please login again.")),
+    );
+    return;
+  }
+
+  // ✅ Ensure Bearer Token Format
+  request.headers['Authorization'] = "Bearer $token";
+    request.files.add(
+      http.MultipartFile.fromBytes("profilePicture", imageBytes,
+          filename: "profile.jpg"),
+    );
+
+    await _sendRequest(request);
+  }
+
+  // ✅ Handle API Response
+  Future<void> _sendRequest(http.MultipartRequest request) async {
+    var response = await request.send();
+    var responseData = await response.stream.bytesToString();
+
+    if (response.statusCode == 200) {
+      var data = json.decode(responseData);
+
+      setState(() {
+        widget.imgPath = data['imageUrl']; // ✅ Update UI with new image URL
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Profile picture updated successfully!")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to upload image.")),
+      );
+    }
+  }
+
+  // Function to Show Enlarged Profile Picture
+  void _showProfilePopup() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        child: Padding(
+          padding: EdgeInsets.all(15.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Profile Picture",
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.blackColor,
+                ),
+              ),
+              SizedBox(height: 10.h),
+
+              // ✅ Show Profile Image or Fallback to Initials
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10.r),
+                child: (widget.imgPath.isNotEmpty &&
+                        widget.imgPath != "null" &&
+                        !widget.imgPath.contains(
+                            "/static/image.png")) // ✅ Avoid broken image
+                    ? Image.network(
+                        widget.imgPath,
+                        width: 200.w,
+                        height: 200.h,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return _buildFallbackAvatar(); // ✅ Handle loading errors
+                        },
+                      )
+                    : _buildFallbackAvatar(), // ✅ Default avatar when image is missing
+              ),
+              SizedBox(height: 20.h),
+
+              // ✅ Button to Change Profile Picture
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _pickAndUploadImage();
+                },
+                icon: Icon(Icons.edit, color: Colors.white),
+                label: Text(
+                  "Change Profile Picture",
+                  style: TextStyle(color: AppColors.whiteColor),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.themeColor,
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+// ✅ Function to Generate a Fallback Avatar with Initials
+  Widget _buildFallbackAvatar() {
+    return CircleAvatar(
+      radius: 60,
+      backgroundColor: Colors.purple.shade100, // ✅ Default background color
+      child: Text(
+        widget.userName[0].toUpperCase(), // ✅ Show first letter
+        style: TextStyle(
+            fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Future<void> _handleLogout() async {
+    try {
+      await removeLogin();
+      await removeLoginToken();
+      await removeUserData();
+      log('User logged out'); // Log message after successful logout
+
+      // Navigate to login screen
+      Navigator.of(context, rootNavigator: true).pushReplacement(
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+    } catch (e) {
+      log("Error during logout: $e");
     }
   }
 
@@ -53,7 +247,7 @@ class _TopBarWidgetState extends State<TopBarWidget> {
           // **Tap outside to close menu**
           Positioned.fill(
             child: GestureDetector(
-              onTap: () => _toggleMenu(),
+              onTap: _toggleMenu, // Just closes menu, no logout here
               behavior: HitTestBehavior.translucent,
             ),
           ),
@@ -88,10 +282,9 @@ class _TopBarWidgetState extends State<TopBarWidget> {
                         'Logout',
                         style: CustomTextInter.medium14(AppColors.blackColor),
                       ),
-                      onTap: () {
-                        // ✅ Handle Logout
-                        _toggleMenu();
-                        log('User logged out');
+                      onTap: () async {
+                        _toggleMenu(); // Close menu first
+                        await _handleLogout(); // Perform logout
                       },
                     ),
                   ],
@@ -111,29 +304,37 @@ class _TopBarWidgetState extends State<TopBarWidget> {
       padding: EdgeInsets.symmetric(horizontal: 10.w),
       child: Row(
         children: [
-          // **Profile Image with Border**
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                height: 53.h,
-                width: 53.w,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.themeColor),
-                ),
-              ),
-              SizedBox(
-                height: 45.h,
-                width: 45.w,
-                child: Image.network(
-                  widget.imgPath,
-                  fit: BoxFit.fill,
-                ),
-              ),
-            ],
+          // **Profile Image with Border and Tap Gesture**
+          // ✅ Profile Image with Border and Tap Gesture
+          GestureDetector(
+            onTap: _showProfilePopup,
+            child: CircleAvatar(
+              radius: 25,
+              backgroundColor:
+                  AppColors.greenColor, // ✅ Default background color
+
+              backgroundImage: (widget.imgPath.isNotEmpty &&
+                      widget.imgPath != "null" &&
+                      !widget.imgPath.contains(
+                          "/static/image.png")) // ✅ Avoid broken images
+                  ? NetworkImage(widget.imgPath)
+                  : null, // ✅ Show initials if no image
+
+              child: (widget.imgPath.isEmpty ||
+                      widget.imgPath == "null" ||
+                      widget.imgPath.contains("/static/image.png"))
+                  ? Text(
+                      widget.userName[0].toUpperCase(), // ✅ Show first letter
+                      style: TextStyle(
+                          fontSize: 24,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold),
+                    )
+                  : null,
+            ),
           ),
-          SizedBox(width: 10.w),
+
+          SizedBox(width: 10),
 
           // **Greeting & User Name**
           Expanded(
@@ -531,7 +732,11 @@ class JobWidget extends StatefulWidget {
   final dynamic jobData;
   final bool isBookmarkScreen;
   final VoidCallback? onRemoveBookmark;
-  JobWidget({super.key, required this.jobData, this.isBookmarkScreen = false, this.onRemoveBookmark});
+  JobWidget(
+      {super.key,
+      required this.jobData,
+      this.isBookmarkScreen = false,
+      this.onRemoveBookmark});
 
   @override
   _JobWidgetState createState() => _JobWidgetState();
@@ -551,18 +756,18 @@ class _JobWidgetState extends State<JobWidget> {
 
   // Fetch user ID from SharedPreferences
   Future<void> _fetchUserId() async {
-  UserModel? user = await getUserData(); // ✅ Fetch user object
+    UserModel? user = await getUserData(); // ✅ Fetch user object
 
-  if (user != null && user.id.isNotEmpty) {
-    setState(() {
-      userId = user.id; // ✅ Extract user ID
-    });
-    print('✅ Retrieved userId: $userId'); // Debugging log
-    _checkBookmarkStatus();
-  } else {
-    print('❌ Error: userId is null or empty. Check login and storage.');
+    if (user != null && user.id.isNotEmpty) {
+      setState(() {
+        userId = user.id; // ✅ Extract user ID
+      });
+      print('✅ Retrieved userId: $userId'); // Debugging log
+      _checkBookmarkStatus();
+    } else {
+      print('❌ Error: userId is null or empty. Check login and storage.');
+    }
   }
-}
 
   // Fetch bookmarks from API
   Future<void> _checkBookmarkStatus() async {
@@ -576,7 +781,8 @@ class _JobWidgetState extends State<JobWidget> {
       if (response != null && response['success'] == true) {
         List<dynamic> bookmarks = response['bookmarks'];
         setState(() {
-          isBookmarked = bookmarks.any((bookmark) => bookmark['jobId'] == jobId);
+          isBookmarked =
+              bookmarks.any((bookmark) => bookmark['jobId'] == jobId);
         });
       }
     } catch (e) {
@@ -599,7 +805,8 @@ class _JobWidgetState extends State<JobWidget> {
 
       if (response != null && response['success'] == true) {
         setState(() {
-          isBookmarked = response['bookmarkStatus']; // ✅ Update from API response
+          isBookmarked =
+              response['bookmarkStatus']; // ✅ Update from API response
         });
 
         print('✅ Bookmark status updated successfully: $isBookmarked');
@@ -671,7 +878,7 @@ class _JobWidgetState extends State<JobWidget> {
                   ),
                 ),
               ),
-               Positioned(
+              Positioned(
                 top: 10.h,
                 right: 10.w,
                 child: GestureDetector(
@@ -692,8 +899,14 @@ class _JobWidgetState extends State<JobWidget> {
                       ],
                     ),
                     child: Icon(
-                      widget.isBookmarkScreen ? Icons.delete : (isBookmarked ? Icons.bookmark : Icons.bookmark_border),
-                      color: widget.isBookmarkScreen ? Colors.red : (isBookmarked ? Colors.blue : Colors.black),
+                      widget.isBookmarkScreen
+                          ? Icons.delete
+                          : (isBookmarked
+                              ? Icons.bookmark
+                              : Icons.bookmark_border),
+                      color: widget.isBookmarkScreen
+                          ? Colors.red
+                          : (isBookmarked ? Colors.blue : Colors.black),
                       size: 22.sp,
                     ),
                   ),
@@ -738,12 +951,14 @@ class _JobWidgetState extends State<JobWidget> {
                             text: TextSpan(
                               children: [
                                 TextSpan(
-                                  text: '\$${widget.jobData['estimatedWage'] ?? '0'}',
+                                  text:
+                                      '\$${widget.jobData['estimatedWage'] ?? '0'}',
                                   style: CustomTextInter.bold14(
                                       AppColors.blackColor),
                                 ),
                                 TextSpan(
-                                  text: ' (${widget.jobData['payRatePerHour']})',
+                                  text:
+                                      ' (${widget.jobData['payRatePerHour']})',
                                   style: CustomTextInter.medium12(
                                       AppColors.blackColor),
                                 ),
@@ -803,10 +1018,9 @@ class _JobWidgetState extends State<JobWidget> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => BottomBarScreen(
-                            index: -1, 
-                            child: JobDetailsScreen(
-                                jobID: widget.jobData[
-                                    '_id']), 
+                            index: -1,
+                            child:
+                                JobDetailsScreen(jobID: widget.jobData['_id']),
                           ),
                         ),
                       );

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:work_lah/screens/model/user_model.dart';
 
@@ -44,6 +45,12 @@ Future<void> saveUserData(Map<String, dynamic> userJson) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String userData = jsonEncode(userJson);
   await prefs.setString('user', userData);
+
+   // ✅ Ensure profile picture is updated correctly
+  if (userJson.containsKey('profilePicture')) {
+    await prefs.setString('profilePicture', userJson['profilePicture']);
+    log("Profile picture saved in SharedPreferences: ${userJson['profilePicture']}");
+  }
   
   // ✅ Store userId separately for quick access
   if (userJson.containsKey('_id')) {

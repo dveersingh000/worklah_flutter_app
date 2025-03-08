@@ -7,11 +7,14 @@ import 'package:work_lah/screens/bottombar/home/home_screen_widget.dart';
 import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/shared_prefs.dart';
 import 'package:work_lah/screens/model/user_model.dart';
+import 'package:work_lah/screens/bottombar/bottom_bar_screen.dart';
+import 'package:work_lah/screens/bottombar/home/job_detail/job_details.dart';
 
 class BookmarkScreen extends StatefulWidget {
-  const BookmarkScreen({Key? key}) : super(key: key);
+  const BookmarkScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _BookmarkScreenState createState() => _BookmarkScreenState();
 }
 
@@ -29,30 +32,26 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
   // ✅ Fetch Logged-in User ID & Then Fetch Bookmarked Jobs
   Future<void> _fetchUserIdAndBookmarkedJobs() async {
     try {
-      UserModel? user = await getUserData(); // ✅ Get user data
+      UserModel? user = await getUserData(); 
 
       if (user != null && user.id.isNotEmpty) {
         setState(() {
-          userId = user.id; // ✅ Extract user ID
+          userId = user.id; 
         });
-        // print('✅ Logged-in userId: $userId');
 
         // ✅ Fetch bookmarked jobs **after** setting userId
         await _fetchBookmarkedJobs();
       } else {
         setState(() => isLoading = false);
-        // print("❌ Error: User ID is null");
       }
     } catch (e) {
-      // print("❌ Error fetching user ID: $e");
       setState(() => isLoading = false);
     }
   }
 
   // ✅ Fetch Bookmarked Jobs from API for Logged-in User
   Future<void> _fetchBookmarkedJobs() async {
-    if (userId == null)
-      return; // ✅ Avoid unnecessary API calls if userId is null
+    if (userId == null) return; // ✅ Avoid unnecessary API calls if userId is null
 
     try {
       var response = await ApiProvider().getRequest(
@@ -63,11 +62,9 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
         setState(() {
           bookmarkedJobs = response['bookmarks'];
         });
-      } else {
-        // print("⚠️ No bookmarks found.");
-      }
+      } 
     } catch (e) {
-      // print('❌ Error fetching bookmarked jobs: $e');
+        print('Error fetching bookmarked jobs: $e');
     } finally {
       setState(() => isLoading = false); // ✅ Ensure loading state updates
     }
@@ -232,8 +229,8 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text("Limited Slots Left",
-                      style: TextStyle(fontSize: 12.sp, color: Colors.red)),
+                  // Text("Limited Slots Left",
+                  //     style: TextStyle(fontSize: 12.sp, color: Colors.red)),
                   if (jobData['slotLabel'] == "Standby Slot Available")
                     Text(
                       jobData['slotLabel'],
@@ -253,7 +250,18 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
                   borderRadius: BorderRadius.circular(10.r),
                 ),
               ),
-              onPressed: () {},
+              onPressed: () {
+                 Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BottomBarScreen(
+                            index: 0,
+                            child:
+                                JobDetailsScreen(jobID: jobData['jobId']),
+                          ),
+                        ),
+                      );
+              },
               child: Text(
                 "Apply Now",
                 style: TextStyle(

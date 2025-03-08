@@ -111,6 +111,10 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
 
   /// ✅ Handles bottom navigation pages
   Widget _getBody() {
+    if (userModel == null) {
+    return Center(child: CircularProgressIndicator(color: AppColors.themeColor)); 
+  }
+
     switch (_page) {
       case 0:
         return HomeScreen();

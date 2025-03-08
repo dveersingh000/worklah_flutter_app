@@ -111,7 +111,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
         "nricNumber": nricController.text,
       });
       UserModel? fetchedUser = await getUserData();
-      UserModel updatedUser = fetchedUser!.copyWith(profileCompleted: true, gender: '');
+      UserModel updatedUser = fetchedUser!.copyWith(profileCompleted: true,);
       await saveUserData(updatedUser.toJson());
       confirmJobBooking();
     } catch (e) {
@@ -167,7 +167,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
                   title: 'Complete your profile',
                   leadingBack: AppColors.whiteColor,
                   leadingIcon: AppColors.themeColor,
-                  titleColor: AppColors.whiteColor,
+                  titleColor: AppColors.themeColor,
                 ),
               ),
               SizedBox(height: commonHeight(context) * 0.03),
@@ -226,15 +226,15 @@ class _CompleteProfileState extends State<CompleteProfile> {
                             readOnly: true,
                           ),
                           SizedBox(height: 20.h),
-                          commonTitle('Employment status'),
+                          commonTitle('Work Pass Status'),
                           SizedBox(height: 10.h),
                           CustomTextFormField(
                             controller: empStatusController,
-                            hintText: 'PR',
+                            hintText: 'Singaporean/Permanent Resident',
                             readOnly: true,
                           ),
                           SizedBox(height: 20.h),
-                          if (empStatusController.text == 'PR') ...[
+                          if (empStatusController.text == 'Singaporean/Permanent Resident') ...[
                             commonTitle('NRIC', isRichText: true),
                             SizedBox(height: 10.h),
                             Text(
@@ -249,7 +249,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
                               hintText: 'Enter your NRIC number',
                             ),
                           ],
-                          if (empStatusController.text == 'LTVP') ...[
+                          if (empStatusController.text == 'Long Term Visit Pass Holder') ...[
                             commonTitle('FIN No', isRichText: true),
                             SizedBox(height: 10.h),
                             CustomTextFormField(
@@ -291,7 +291,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
                             hintText: 'Enter your Postal code',
                           ),
                           SizedBox(height: 20.h),
-                          if (empStatusController.text == 'PR') ...[
+                          if (empStatusController.text == 'Singaporean/Permanent Resident') ...[
                             commonTitle(
                               'NRIC Image (Front & Back)',
                               isRichText: true,
@@ -319,7 +319,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
                               selectedIMG: selectedNRICBack,
                             ),
                           ],
-                          if (empStatusController.text == 'LTVP') ...[
+                          if (empStatusController.text == 'Long Term Visit Pass Holder') ...[
                             commonTitle(
                               'FIN Image (Front & Back)',
                               isRichText: true,
@@ -380,7 +380,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
                               },
                             ),
                           ],
-                          if (empStatusController.text == 'Student') ...[
+                          if (empStatusController.text == 'Student Pass') ...[
                             commonTitle(
                               'Student Card',
                               isRichText: true,
@@ -433,7 +433,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
                                         ),
                                       )
                                     : Text(
-                                        'Confirm Booking',
+                                        'Save Profile',
                                         style: CustomTextPopins.medium16(
                                             AppColors.whiteColor),
                                       ),
@@ -451,7 +451,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
           ),
           Padding(
             padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 180.h,
+              top: MediaQuery.of(context).padding.top + 220.h,
               left: MediaQuery.of(context).padding.left + 120.w,
               right: MediaQuery.of(context).padding.right + 120.w,
             ),

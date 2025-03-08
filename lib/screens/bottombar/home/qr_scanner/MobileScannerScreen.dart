@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:work_lah/screens/bottombar/home/qr_scanner/select_job_screen.dart';
-import 'package:work_lah/data/send_request.dart';
 
 class MobileScannerScreen extends StatefulWidget {
   const MobileScannerScreen({super.key});
@@ -12,6 +10,7 @@ class MobileScannerScreen extends StatefulWidget {
 
 class _MobileScannerScreenState extends State<MobileScannerScreen> {
   MobileScannerController cameraController = MobileScannerController();
+  String? scannedData; // Holds the extracted QR code data
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +18,9 @@ class _MobileScannerScreenState extends State<MobileScannerScreen> {
       backgroundColor: Colors.black,
       body: Column(
         children: [
-          SizedBox(height: 50), // Spacing from the top
+          SizedBox(height: 50), // Top spacing
+
+          // Back Button
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: Align(
@@ -30,8 +31,9 @@ class _MobileScannerScreenState extends State<MobileScannerScreen> {
               ),
             ),
           ),
+
           SizedBox(height: 20),
-          
+
           // QR Scanner View Centered
           Expanded(
             child: Center(
@@ -46,23 +48,14 @@ class _MobileScannerScreenState extends State<MobileScannerScreen> {
                     borderRadius: BorderRadius.circular(12),
                     child: MobileScanner(
                       controller: cameraController,
-                      onDetect: (capture) async {
+                      onDetect: (capture) {
                         final List<Barcode> barcodes = capture.barcodes;
                         for (final barcode in barcodes) {
-                          String? scannedData = barcode.rawValue;
-                          if (scannedData != null) {
-                            var response = await ApiProvider().postRequest(
-                              apiUrl: '/api/qr/scan',
-                              data: {"qrData": scannedData},
-                            );
-                            if (response['success']) {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => SelectJobScreen(
-                                        jobData: response['jobDetails'])),
-                              );
-                            }
+                          if (barcode.rawValue != null) {
+                            setState(() {
+                              scannedData = barcode.rawValue; // Store extracted QR data
+                              cameraController.stop(); // Stop scanning after first read
+                            });
                           }
                         }
                       },
@@ -73,7 +66,30 @@ class _MobileScannerScreenState extends State<MobileScannerScreen> {
             ),
           ),
 
-          SizedBox(height: 30),
+          SizedBox(height: 20),
+
+          // Display Extracted Data
+          if (scannedData != null)
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Text(
+                      scannedData!,
+                      style: TextStyle(color: Colors.black, fontSize: 14),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          SizedBox(height: 10),
 
           // Restart Scanner Button Centered
           Padding(
@@ -82,7 +98,10 @@ class _MobileScannerScreenState extends State<MobileScannerScreen> {
               alignment: Alignment.center,
               child: ElevatedButton(
                 onPressed: () {
-                  cameraController.start();
+                  setState(() {
+                    scannedData = null; // Clear previous scan data
+                  });
+                  cameraController.start(); // Restart scanner
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,

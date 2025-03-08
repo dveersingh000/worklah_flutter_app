@@ -15,6 +15,7 @@ import 'package:work_lah/utility/top_app_bar.dart';
 import 'package:work_lah/screens/bottombar/profile/bookmark_screen.dart';
 import 'package:work_lah/screens/bottombar/bottom_bar_screen.dart';
 import 'package:work_lah/screens/bottombar/profile/UpdateProfileScreen.dart';
+import 'package:work_lah/screens/bottombar/home/complete_profile/complete_profile.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool profileCompleted;
@@ -64,11 +65,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => BottomBarScreen(
-          index: 0, // Ensure correct bottom bar index
-          child: UpdateProfileScreen(),
-        ),
-      ),
+          builder: (context) => BottomBarScreen(
+              index: 0,
+              child: CompleteProfile(
+                jobData: {},
+                shiftID: '',
+                jobDATE: '',
+              ))),
     );
   }
 
@@ -77,9 +80,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.whiteColor,
       body: widget.profileCompleted
-          ? getCompleteProfileBody()
-          : getNotCompleteProfileBody(),
-    );
+        ? (isProfileLoading || profileData.isEmpty) // Show loader until data is ready
+            ? Center(child: CircularProgressIndicator(color: AppColors.themeColor))
+            : getCompleteProfileBody()
+        : getNotCompleteProfileBody(),
+  );
   }
 
   Widget getCompleteProfileBody() {
@@ -225,6 +230,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SizedBox(height: commonHeight(context) * 0.03),
             DashedDivider(),
             SizedBox(height: commonHeight(context) * 0.03),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BottomBarScreen(
+                          index: 0,
+                          child: BookmarkScreen(),
+                        ),
+                      ),
+                    );
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //       builder: (context) => BookmarkScreen()),
+                    // );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.themeColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 15.h),
+                  ),
+                  child: Text(
+                    'View Bookmarked Jobs',
+                    style: CustomTextInter.bold16(AppColors.whiteColor),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: commonHeight(context) * 0.03),
             Center(
               child: Column(
                 children: [
@@ -243,7 +284,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SizedBox(height: commonHeight(context) * 0.03),
                   // **Edit Profile Button for Incomplete Users**
                   ElevatedButton(
-                    onPressed: navigateToUpdateProfile,
+                    onPressed: () {
+                      // ✅ Navigate to Complete Profile
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => BottomBarScreen(
+                                index: 0,
+                                child: CompleteProfile(
+                                  jobData: {},
+                                  shiftID: '',
+                                  jobDATE: '',
+                                ))),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.themeColor,
                       shape: RoundedRectangleBorder(
@@ -251,7 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: EdgeInsets.symmetric(
                           vertical: 15.h, horizontal: 30.w),
                     ),
-                    child: Text('Edit Profile',
+                    child: Text('Complete Profile',
                         style: CustomTextInter.bold16(AppColors.whiteColor)),
                   )
                 ],

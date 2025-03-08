@@ -11,6 +11,8 @@ import 'package:work_lah/utility/colors.dart';
 import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:work_lah/utility/syle_poppins.dart';
+import 'package:work_lah/screens/bottombar/bottom_bar_screen.dart';
+import 'package:work_lah/screens/bottombar/e_wallet/e_wallet_screen.dart';
 
 class WalletAmountCard extends StatelessWidget {
   const WalletAmountCard({super.key});
@@ -63,6 +65,20 @@ class WalletAmountCard extends StatelessWidget {
                     color: AppColors.themeColor,
                   ),
                   child: Center(
+                    child: InkWell(
+                    onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BottomBarScreen(
+                              index:
+                                  0, // ✅ Set the correct tab index (e.g., Home or Wallet)
+                              child:
+                                  EWalletScreen(), // ✅ Keep CashOutHomeScreen as child
+                            ),
+                          ),
+                        );
+                      },
                     child: Row(
                       children: [
                         Text(
@@ -76,6 +92,7 @@ class WalletAmountCard extends StatelessWidget {
                           size: 20.sp,
                         ),
                       ],
+                    ),
                     ),
                   ),
                 ),

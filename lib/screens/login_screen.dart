@@ -234,80 +234,88 @@ class _LoginScreenState extends State<LoginScreen> {
                             CustomTextInter.regular14(AppColors.textGreyColor),
                       ),
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment
+                            .end, // Aligns the underline properly
                         children: [
-                          DropdownButton(
-                            dropdownColor: AppColors.whiteColor,
-                            value: selectedCode,
-                            onChanged: (newValue) {
-                              setState(() {
-                                selectedCode = newValue!;
-                              });
-                            },
-                            underline: Container(
-                              height: 1,
-                              width: double.infinity,
-                              color: Color(0XFFC9C9C9),
-                            ),
-                            items: countryCodes.map((item) {
-                              return DropdownMenuItem(
-                                value: item['code'],
-                                child: Row(
-                                  children: [
-                                    Image.asset(
-                                      item['flag']!,
-                                      width: 24,
-                                      height: 16,
-                                      fit: BoxFit.contain,
-                                    ), // Flag image
-                                    SizedBox(width: 5.w),
-                                    Text(item['code']!), // Country code
-                                  ],
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  dropdownColor: AppColors.whiteColor,
+                                  value: selectedCode,
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      selectedCode = newValue!;
+                                    });
+                                  },
+                                  items: countryCodes.map((item) {
+                                    return DropdownMenuItem(
+                                      value: item['code'],
+                                      child: Row(
+                                        children: [
+                                          Image.asset(
+                                            item['flag']!,
+                                            width: 24,
+                                            height: 16,
+                                            fit: BoxFit.contain,
+                                          ),
+                                          SizedBox(width: 5),
+                                          Text(item['code']!), // Country code
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
                                 ),
-                              );
-                            }).toList(),
+                              ),
+                              Container(
+                                height: 1,
+                                width:
+                                    70, // Adjust width to match dropdown width
+                                color: Color(0XFFC9C9C9),
+                              ),
+                            ],
                           ),
                           SizedBox(width: 20.w),
                           Expanded(
-                            child: TextFormField(
-                              controller: mobileControllers,
-                              cursorColor: AppColors.subTitleColor,
-                              style: CustomTextInter.regular14(
-                                  AppColors.blackColor),
-                              keyboardType: TextInputType.number,
-                              inputFormatters: <TextInputFormatter>[
-                                FilteringTextInputFormatter.digitsOnly,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextFormField(
+                                  controller: mobileControllers,
+                                  cursorColor: AppColors.subTitleColor,
+                                  style: CustomTextInter.regular14(
+                                      AppColors.blackColor),
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return 'Please Enter Mobile No';
+                                    }
+                                    return null;
+                                  },
+                                  decoration: InputDecoration(
+                                    hintText: 'Mobile number',
+                                    hintStyle: CustomTextInter.light14(
+                                        AppColors.subTitleColor),
+                                    border: InputBorder
+                                        .none, // Remove default underline
+                                  ),
+                                ),
+                                Container(
+                                  height: 1,
+                                  width: double.infinity,
+                                  color: Color(0XFFC9C9C9),
+                                ),
                               ],
-                              validator: (value) {
-                                if (value!.isEmpty) {
-                                  return 'Please Enter Mobile No';
-                                }
-                                return null;
-                              },
-                              decoration: InputDecoration(
-                                hintText: 'Mobile number',
-                                hintStyle: CustomTextInter.light14(
-                                  AppColors.subTitleColor,
-                                ),
-                                border: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0XFFC9C9C9),
-                                  ),
-                                ),
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0XFFC9C9C9),
-                                  ),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0XFFC9C9C9),
-                                  ),
-                                ),
-                              ),
                             ),
                           ),
                         ],
                       ),
+
                       SizedBox(height: 20.h),
                       MouseRegion(
                         onEnter: (_) => setState(() => isOtpHovered = true),

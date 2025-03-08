@@ -315,108 +315,130 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                   SizedBox(height: 20.h),
 
                                   /// ✅ Button Appears Normally at the End
-Padding(
-  padding: EdgeInsets.symmetric(horizontal: 20.w),
-  child: Column(
-    children: [
-      /// ✅ "Preview" Button (Always Enabled)
-      SizedBox(
-        width: double.infinity,
-        height: 50.h,
-        child: ElevatedButton(
-          onPressed: () {
-            List<dynamic> selectedShifts = getSelectedShifts();
-            if (selectedShifts.isEmpty) {
-              // **Show toast message if no shift is selected**
-              toast("Please select at least one shift before proceeding.");
-              return; // Stop further execution
-            }
-            if (profileCompleted) {
-              // ✅ Wrap with BottomBarScreen so it includes the bottom navigation bar
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BottomBarScreen(
-                    index: 0, // ✅ Keep Home as default tab OR pass the correct tab index
-                    child: JobDetailsPreviewScreen(
-                      jobDetailsData: jobDetailsData,
-                      selectedShifts: selectedShifts, // ✅ Pass selected shifts with date
-                    ),
-                  ),
-                ),
-              );
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.themeColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-          ),
-          child: Text(
-            "Preview",
-            style: CustomTextInter.bold16(AppColors.whiteColor),
-          ),
-        ),
-      ),
+                                  Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 20.w),
+                                    child: Column(
+                                      children: [
+                                        /// ✅ "Preview" Button (Always Enabled)
+                                        SizedBox(
+                                          width: double.infinity,
+                                          height: 50.h,
+                                          child: ElevatedButton(
+                                            onPressed: () {
+                                              List<dynamic> selectedShifts =
+                                                  getSelectedShifts();
+                                              if (selectedShifts.isEmpty) {
+                                                // **Show toast message if no shift is selected**
+                                                toast(
+                                                    "Please select at least one shift before proceeding.");
+                                                return; // Stop further execution
+                                              }
+                                              if (profileCompleted) {
+                                                // ✅ Wrap with BottomBarScreen so it includes the bottom navigation bar
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        BottomBarScreen(
+                                                      index:
+                                                          0, // ✅ Keep Home as default tab OR pass the correct tab index
+                                                      child:
+                                                          JobDetailsPreviewScreen(
+                                                        jobDetailsData:
+                                                            jobDetailsData,
+                                                        selectedShifts:
+                                                            selectedShifts, // ✅ Pass selected shifts with date
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  AppColors.themeColor,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10.r),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              "Preview",
+                                              style: CustomTextInter.bold16(
+                                                  AppColors.whiteColor),
+                                            ),
+                                          ),
+                                        ),
 
-      SizedBox(height: 10.h),
+                                        SizedBox(height: 10.h),
 
-      /// ✅ "Complete Profile" Button (Always Visible but Disabled if Profile is Completed)
-      SizedBox(
-        width: double.infinity,
-        height: 50.h,
-        child: ElevatedButton(
-          onPressed: profileCompleted
-              ? null // Disabled when profile is completed
-              : () {
-                  // ✅ Navigate to Complete Profile
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CompleteProfile(
-                        jobData: {},
-                        shiftID: '',
-                        jobDATE: '',
-                      ),
-                    ),
-                  );
-                },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: profileCompleted
-                ? Colors.grey.shade400 // Disabled state color
-                : Colors.orange, // Active color
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-          ),
-          child: Text(
-            "Complete Your Profile",
-            style: CustomTextInter.bold16(AppColors.whiteColor),
-          ),
-        ),
-      ),
+                                        /// ✅ "Complete Profile" Button (Always Visible but Disabled if Profile is Completed)
+                                        SizedBox(
+                                          width: double.infinity,
+                                          height: 50.h,
+                                          child: ElevatedButton(
+                                            onPressed: profileCompleted
+                                                ? null // Disabled when profile is completed
+                                                : () {
+                                                    // ✅ Navigate to Complete Profile
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            CompleteProfile(
+                                                          jobData: {},
+                                                          shiftID: '',
+                                                          jobDATE: '',
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: profileCompleted
+                                                  ? Colors.grey
+                                                      .shade400 // Disabled state color
+                                                  : Colors
+                                                      .orange, // Active color
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10.r),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              "Complete Your Profile",
+                                              style: CustomTextInter.bold16(
+                                                  AppColors.whiteColor),
+                                            ),
+                                          ),
+                                        ),
 
-      /// ✅ Show the warning message always
-      Padding(
-        padding: EdgeInsets.only(top: 10.h), // ✅ Spacing below the button
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.info, color: Colors.orange, size: 16.sp), // ℹ️ Info icon
-            SizedBox(width: 5.w),
-            Text(
-              profileCompleted
-                  ? "Your profile is already completed"
-                  : "Complete your profile before shift bookings",
-              style: CustomTextInter.medium12(Colors.orange),
-            ),
-          ],
-        ),
-      ),
-    ],
-  ),
-),
+                                        /// ✅ Show the warning message always
+                                        Padding(
+                                          padding: EdgeInsets.only(
+                                              top: 10
+                                                  .h), // ✅ Spacing below the button
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.info,
+                                                  color: Colors.orange,
+                                                  size: 16.sp), // ℹ️ Info icon
+                                              SizedBox(width: 5.w),
+                                              Text(
+                                                profileCompleted
+                                                    ? "Your profile is already completed"
+                                                    : "Complete your profile before shift bookings",
+                                                style: CustomTextInter.medium12(
+                                                    Colors.orange),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
 
                                   SizedBox(height: 20.h),
                                 ],

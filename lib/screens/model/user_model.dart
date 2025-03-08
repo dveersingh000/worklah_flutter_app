@@ -32,7 +32,7 @@ class UserModel {
     );
   }
 
-  get gender => null;
+  // get gender => null;
 
   Map<String, dynamic> toJson() {
     return {
@@ -55,7 +55,7 @@ class UserModel {
     String? employmentStatus,
     String? profilePicture,
     bool? profileCompleted,
-    String? createdAt, required String gender,
+    String? createdAt,
   }) {
     return UserModel(
       id: id ?? this.id,

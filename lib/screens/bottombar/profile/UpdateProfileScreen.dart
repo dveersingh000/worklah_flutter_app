@@ -61,7 +61,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       phoneController.text = userModel?.phoneNumber ?? '';
       emailController.text = userModel?.email ?? '';
       empStatusController.text = userModel?.employmentStatus ?? '';
-      selectedGender = userModel?.gender == "Male" ? 0 : 1;
+      // selectedGender = userModel?.gender == "Male" ? 0 : 1;
     });
   }
 
@@ -105,7 +105,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
         fullName: nameController.text,
         phoneNumber: phoneController.text,
         email: emailController.text,
-        gender: selectedGender == 0 ? 'Male' : 'Female',
+        // gender: selectedGender == 0 ? 'Male' : 'Female',
       );
       await saveUserData(updatedUser.toJson());
 
