@@ -151,6 +151,8 @@ class _JobDetailsPreviewScreenState extends State<JobDetailsPreviewScreen> {
                 index: 0,
                 child: BookingConfirmationScreen(
                   jobDetails: widget.jobDetailsData,
+                  selectedShifts: widget.selectedShifts, 
+                  applicationId: response['application']['_id'],
                 ),
               ),
             ),
