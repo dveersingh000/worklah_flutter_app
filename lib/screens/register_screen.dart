@@ -302,7 +302,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         SizedBox(height: 10.h),
                         CustomTextFormField(
                           controller: nameController,
-                          hintText: 'Steve Ryan',
+                          hintText: '@fullname',
                           inputFormatters: [
                             FilteringTextInputFormatter.allow(RegExp(
                                 r"[a-zA-Z\s]")), // Allow only alphabets and spaces

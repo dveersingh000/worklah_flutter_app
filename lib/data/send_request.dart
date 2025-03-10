@@ -3,7 +3,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:work_lah/utility/shared_prefs.dart';
+import 'package:work_lah/screens/login_screen.dart';
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:work_lah/main.dart';
 
 class ApiProvider {
   String baseUrl = 'https://worklah.onrender.com';
@@ -16,7 +19,7 @@ class ApiProvider {
     var res2 = await http.get(Uri.parse('$baseUrl$apiUrl'), headers: {
       'Accept': 'application/json',
       "accept": "application/json",
-      "Authorization": "Bearear $loginToken"
+      "Authorization": "Bearer $loginToken"
     });
     print("URL ::: ${"$baseUrl$apiUrl"}");
     print('TOKEN :: $loginToken');
@@ -26,7 +29,9 @@ class ApiProvider {
     if (res2.statusCode == 200) {
       return res;
     } else if (res2.statusCode == 401) {
-      return Future.error(res);
+      // 🔥 Unauthorized - Redirect to Login
+      await handleUnauthorized();
+      return Future.error('Session expired. Please login again.');
     } else if (res2.statusCode == 404) {
       return Future.error(res);
     } else if (res2.statusCode == 500) {
@@ -46,7 +51,7 @@ class ApiProvider {
         .post(Uri.parse('$baseUrl$apiUrl'), body: jsonEncode(data), headers: {
       "content-type": "application/json",
       "accept": "application/json",
-      "Authorization": "Bearear $loginToken"
+      "Authorization": "Bearer $loginToken"
     });
     print("URL ::: ${"$baseUrl$apiUrl"}");
     print("REQUEST ::: ${"$data"}");
@@ -57,6 +62,10 @@ class ApiProvider {
       return res;
     } else if (res2.statusCode == 400) {
       return Future.error(res);
+    } else if (res2.statusCode == 401) {
+      // 🔥 Unauthorized - Redirect to Login
+      await handleUnauthorized();
+      return Future.error('Session expired. Please login again.');
     } else if (res2.statusCode == 404) {
       return Future.error(res);
     } else if (res2.statusCode == 500) {
@@ -83,7 +92,9 @@ class ApiProvider {
     if (res2.statusCode == 200) {
       return res;
     } else if (res2.statusCode == 401) {
-      return Future.error(res);
+      // 🔥 Unauthorized - Redirect to Login
+      await handleUnauthorized();
+      return Future.error('Session expired. Please login again.');
     } else if (res2.statusCode == 404) {
       return Future.error(res);
     } else if (res2.statusCode == 500) {
@@ -110,7 +121,9 @@ class ApiProvider {
     if (res2.statusCode == 200) {
       return res;
     } else if (res2.statusCode == 401) {
-      return Future.error(res);
+      // 🔥 Unauthorized - Redirect to Login
+      await handleUnauthorized();
+      return Future.error('Session expired. Please login again.');
     } else if (res2.statusCode == 404) {
       return Future.error(res);
     } else if (res2.statusCode == 500) {
@@ -168,6 +181,20 @@ class ApiProvider {
       return res;
     } else {
       return Future.error(res);
+    }
+  }
+  /// ✅ Handles Unauthorized Access (401)
+  Future<void> handleUnauthorized() async {
+    print("🔴 Unauthorized: Redirecting to Login...");
+    
+    await removeLoginToken();
+    await removeUserData();
+
+    if (navigatorKey.currentState?.mounted ?? false) {
+      navigatorKey.currentState?.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => LoginScreen()), 
+        (route) => false
+      );
     }
   }
 }

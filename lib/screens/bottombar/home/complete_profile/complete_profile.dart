@@ -82,7 +82,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
       nameController.text = userModel?.fullName ?? 'Steve Ryan';
       phoneController.text = userModel?.phoneNumber ?? '+65 1234567890';
       emailController.text = userModel?.email ?? 'artx@gmail.com';
-      empStatusController.text = userModel?.employmentStatus ?? 'PR';
+      empStatusController.text = userModel?.employmentStatus ?? 'Singaporean/Permanent Resident';
     });
   }
 
@@ -101,19 +101,35 @@ class _CompleteProfileState extends State<CompleteProfile> {
     });
 
     String dateOfBirth = '$dobYear-$dobMonth-$dobDate';
+    
     try {
       var response = await ApiProvider()
-          .postRequest(apiUrl: '/api/profile/complete-profile', data: {
+          .putRequest(apiUrl: '/api/profile/complete-profile', data: {
         "userId": userModel!.id.toString(),
         "dob": dateOfBirth,
         "gender": selectedGender == 0 ? 'Male' : 'Female',
         "postalCode": postalCodeController.text,
         "nricNumber": nricController.text,
+        "finNumber": finController.text,
+        "studentIdNumber": studentIDController.text,
+        "schoolName": schoolNameController.text,
       });
       UserModel? fetchedUser = await getUserData();
-      UserModel updatedUser = fetchedUser!.copyWith(profileCompleted: true,);
+      UserModel updatedUser = fetchedUser!.copyWith(
+        profileCompleted: true,
+      );
       await saveUserData(updatedUser.toJson());
-      confirmJobBooking();
+      setState(() {
+      isLoading = false;
+    });
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BottomBarScreen(index: 4), // 🔥 Navigate to Profile Page
+      ),
+    );
+      // confirmJobBooking();
     } catch (e) {
       log('Error during Res: $e');
       final errorMessage = e is Map ? e['message'] : 'An error occurred';
@@ -124,33 +140,33 @@ class _CompleteProfileState extends State<CompleteProfile> {
     }
   }
 
-  Future<void> confirmJobBooking() async {
-    DateTime date = DateTime.parse(widget.jobDATE);
-    String formattedDate = DateFormat('yyyy-MM-dd').format(date);
-    try {
-      var response = await ApiProvider().postRequest(
-          apiUrl: '/api/jobs/${widget.jobData['_id']}/apply',
-          data: {
-            "userId": userModel!.id.toString(),
-            "jobId": widget.jobData['_id'],
-            "shiftId": widget.shiftID,
-            "date": formattedDate,
-            "isStandby": false,
-          });
-      toast(response['message']);
-      setState(() {
-        isLoading = false;
-      });
-      moveReplacePage(context, BottomBarScreen(index: 0));
-    } catch (e) {
-      log('Error during Res: $e');
-      final errorMessage = e is Map ? e['message'] : 'An error occurred';
-      toast(errorMessage);
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
+  // Future<void> confirmJobBooking() async {
+  //   DateTime date = DateTime.parse(widget.jobDATE);
+  //   String formattedDate = DateFormat('yyyy-MM-dd').format(date);
+  //   try {
+  //     var response = await ApiProvider().postRequest(
+  //         apiUrl: '/api/jobs/${widget.jobData['_id']}/apply',
+  //         data: {
+  //           "userId": userModel!.id.toString(),
+  //           "jobId": widget.jobData['_id'],
+  //           "shiftId": widget.shiftID,
+  //           "date": formattedDate,
+  //           "isStandby": false,
+  //         });
+  //     toast(response['message']);
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //     moveReplacePage(context, BottomBarScreen(index: 0));
+  //   } catch (e) {
+  //     log('Error during Res: $e');
+  //     final errorMessage = e is Map ? e['message'] : 'An error occurred';
+  //     toast(errorMessage);
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -234,7 +250,8 @@ class _CompleteProfileState extends State<CompleteProfile> {
                             readOnly: true,
                           ),
                           SizedBox(height: 20.h),
-                          if (empStatusController.text == 'Singaporean/Permanent Resident') ...[
+                          if (empStatusController.text ==
+                              'Singaporean/Permanent Resident') ...[
                             commonTitle('NRIC', isRichText: true),
                             SizedBox(height: 10.h),
                             Text(
@@ -249,7 +266,8 @@ class _CompleteProfileState extends State<CompleteProfile> {
                               hintText: 'Enter your NRIC number',
                             ),
                           ],
-                          if (empStatusController.text == 'Long Term Visit Pass Holder') ...[
+                          if (empStatusController.text ==
+                              'Long Term Visit Pass Holder') ...[
                             commonTitle('FIN No', isRichText: true),
                             SizedBox(height: 10.h),
                             CustomTextFormField(
@@ -291,7 +309,8 @@ class _CompleteProfileState extends State<CompleteProfile> {
                             hintText: 'Enter your Postal code',
                           ),
                           SizedBox(height: 20.h),
-                          if (empStatusController.text == 'Singaporean/Permanent Resident') ...[
+                          if (empStatusController.text ==
+                              'Singaporean/Permanent Resident') ...[
                             commonTitle(
                               'NRIC Image (Front & Back)',
                               isRichText: true,
@@ -319,7 +338,8 @@ class _CompleteProfileState extends State<CompleteProfile> {
                               selectedIMG: selectedNRICBack,
                             ),
                           ],
-                          if (empStatusController.text == 'Long Term Visit Pass Holder') ...[
+                          if (empStatusController.text ==
+                              'Long Term Visit Pass Holder') ...[
                             commonTitle(
                               'FIN Image (Front & Back)',
                               isRichText: true,
