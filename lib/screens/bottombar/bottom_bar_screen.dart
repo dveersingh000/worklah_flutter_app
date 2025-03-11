@@ -133,20 +133,25 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
 
   /// ✅ Builds Bottom Navigation Bar and Handles Page Switching
   Widget _buildBottomNavBar() {
-    return BottomNavigationBar(
+  return Container(
+    height: 65, // ✅ Increase the height to prevent text cutoff
+    decoration: BoxDecoration(
+      border: Border(top: BorderSide(color: Colors.grey.shade300, width: 1)), // Optional: Add a subtle top border
+    ),
+    child: BottomNavigationBar(
       iconSize: 25,
       backgroundColor: AppColors.whiteColor,
       selectedItemColor: AppColors.themeColor,
       unselectedItemColor: AppColors.blackColor,
       showUnselectedLabels: true,
-
-      // ✅ Ensure `currentIndex` is always valid
-      currentIndex: (_page >= 0 && _page < 5) ? _page : 0,
-
       type: BottomNavigationBarType.fixed,
+
+      selectedLabelStyle: TextStyle(fontSize: 12), // ✅ Reduce font size
+      unselectedLabelStyle: TextStyle(fontSize: 11), // ✅ Reduce font size for unselected items
+
+      currentIndex: (_page >= 0 && _page < 5) ? _page : 0,
       onTap: (value) {
         if (widget.child != null) {
-          // ✅ Replace current page with selected tab instead of popping
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => BottomBarScreen(index: value)),
@@ -160,10 +165,15 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
       items: [
         BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.menu_outlined), label: 'My Jobs'),
-        BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner, color: AppColors.themeColor), label: 'Clock in/Out'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.qr_code_scanner, color: AppColors.themeColor), 
+          label: 'Clock In/Out', // ✅ Ensure label fits properly
+        ),
         BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'E-Wallet'),
         BottomNavigationBarItem(icon: Icon(Icons.account_circle_outlined), label: 'Profile'),
       ],
-    );
-  }
+    ),
+  );
+}
+
 }

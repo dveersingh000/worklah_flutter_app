@@ -22,6 +22,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:intl/intl.dart';
 
 // import 'package:work_lah/screens/bottombar/home/qr_scanner/scan_qr_screen.dart';
 
@@ -538,6 +539,7 @@ class _FilterWidgetState extends State<FilterWidget> {
   String selectedEmployer = "";
 
   @override
+
   void initState() {
     super.initState();
     fetchEmployers();
@@ -595,6 +597,7 @@ class _FilterWidgetState extends State<FilterWidget> {
   }
 }
 
+
 class DateSelectionWidget extends StatefulWidget {
   final Function(String) onDateSelected;
   const DateSelectionWidget({super.key, required this.onDateSelected});
@@ -607,8 +610,7 @@ class _DateSelectionWidgetState extends State<DateSelectionWidget> {
   DateTime selectedDate = DateTime.now();
 
   List<DateTime> getNextSevenDays() {
-    return List.generate(
-        7, (index) => DateTime.now().add(Duration(days: index)));
+    return List.generate(7, (index) => DateTime.now().add(Duration(days: index)));
   }
 
   @override
@@ -617,7 +619,6 @@ class _DateSelectionWidgetState extends State<DateSelectionWidget> {
 
     return Row(
       children: [
-        // 📅 "Go to Date" Button (Properly Centered)
         GestureDetector(
           onTap: () async {
             DateTime? picked = await showDatePicker(
@@ -630,7 +631,10 @@ class _DateSelectionWidgetState extends State<DateSelectionWidget> {
               setState(() {
                 selectedDate = picked;
               });
-              widget.onDateSelected(picked.toString());
+
+              // ✅ Convert DateTime to "YYYY-MM-DD" format
+              String formattedDate = DateFormat('yyyy-MM-dd').format(picked);
+              widget.onDateSelected(formattedDate);
             }
           },
           child: Container(
@@ -643,19 +647,15 @@ class _DateSelectionWidgetState extends State<DateSelectionWidget> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.calendar_today,
-                    size: 18.sp, color: AppColors.blackColor),
+                Icon(Icons.calendar_today, size: 18.sp, color: AppColors.blackColor),
                 SizedBox(height: 3.h),
-                Text("Go to",
-                    style: CustomTextInter.medium10(AppColors.blackColor)),
-                Text("Date",
-                    style: CustomTextInter.medium10(AppColors.blackColor)),
+                Text("Go to", style: CustomTextInter.medium10(AppColors.blackColor)),
+                Text("Date", style: CustomTextInter.medium10(AppColors.blackColor)),
               ],
             ),
           ),
         ),
 
-        // 🔹 Vertical Divider (Properly Aligned)
         Container(
           width: 1.5.w,
           height: 50.h,
@@ -663,7 +663,6 @@ class _DateSelectionWidgetState extends State<DateSelectionWidget> {
           margin: EdgeInsets.symmetric(horizontal: 8.w),
         ),
 
-        // 📆 Scrollable Date List (Pill Shapes)
         Expanded(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -675,44 +674,33 @@ class _DateSelectionWidgetState extends State<DateSelectionWidget> {
                     setState(() {
                       selectedDate = date;
                     });
-                    widget.onDateSelected(date.toString());
+
+                    // ✅ Convert DateTime to "YYYY-MM-DD" format
+                    String formattedDate = DateFormat('yyyy-MM-dd').format(date);
+                    widget.onDateSelected(formattedDate);
                   },
                   child: Container(
-                    width: 55.w, // More pill-like
+                    width: 55.w,
                     padding: EdgeInsets.symmetric(vertical: 12.h),
                     margin: EdgeInsets.symmetric(horizontal: 5.w),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.themeColor
-                          : Color(0xFFE6F0FF), // Light blue for unselected
-                      borderRadius: BorderRadius.circular(30.r), // More rounded
+                      color: isSelected ? AppColors.themeColor : Color(0xFFE6F0FF),
+                      borderRadius: BorderRadius.circular(30.r),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          [
-                            "Sun",
-                            "Mon",
-                            "Tue",
-                            "Wed",
-                            "Thu",
-                            "Fri",
-                            "Sat"
-                          ][date.weekday % 7],
+                          ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][date.weekday % 7],
                           style: CustomTextInter.medium12(
-                            isSelected
-                                ? AppColors.whiteColor
-                                : AppColors.blackColor,
+                            isSelected ? AppColors.whiteColor : AppColors.blackColor,
                           ),
                         ),
-                        SizedBox(height: 3.h), // Space between text
+                        SizedBox(height: 3.h),
                         Text(
                           date.day.toString(),
                           style: CustomTextInter.bold18(
-                            isSelected
-                                ? AppColors.whiteColor
-                                : AppColors.blackColor,
+                            isSelected ? AppColors.whiteColor : AppColors.blackColor,
                           ),
                         ),
                       ],
@@ -956,12 +944,12 @@ class _JobWidgetState extends State<JobWidget> {
                                   style: CustomTextInter.bold14(
                                       AppColors.blackColor),
                                 ),
-                                TextSpan(
-                                  text:
-                                      ' (${widget.jobData['payRatePerHour']})',
-                                  style: CustomTextInter.medium12(
-                                      AppColors.blackColor),
-                                ),
+                                // TextSpan(
+                                //   text:
+                                //       ' (${widget.jobData['payRatePerHour']})',
+                                //   style: CustomTextInter.medium12(
+                                //       AppColors.blackColor),
+                                // ),
                               ],
                             ),
                           ),

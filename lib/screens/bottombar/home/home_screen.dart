@@ -60,12 +60,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   }
 
-  void getHomeData() async {
+  void getHomeData({String? date}) async {
     setState(() {
       homeDataLoading = true;
     });
     try {
-      var response = await ApiProvider().getRequest(apiUrl: '/api/jobs');
+      String apiUrl = '/api/jobs';
+      if (date != null && date.isNotEmpty) {
+        apiUrl = '/api/jobs/search?selectedDate=$date'; // ✅ Append date filter
+      }
+
+      var response = await ApiProvider().getRequest(apiUrl: apiUrl);
       setState(() {
         homeJobData = response['jobs'];
         homeDataLoading = false;
@@ -87,82 +92,108 @@ class _HomeScreenState extends State<HomeScreen> {
       filteredJobs = results.isNotEmpty ? results : homeJobData;
     });
   }
+  // ✅ Function to Update Jobs Based on Selected Date
+  void filterJobsByDate(String date) {
+    setState(() {
+      selectedDate = date;
+    });
+    getHomeData(date: date); // ✅ Call API with selected date
+  }
+
+   // ✅ Function to Reset Job Filter
+  void resetFilter() {
+    setState(() {
+      selectedDate = ""; // Clear the selected date
+    });
+    getHomeData(); // Reload all jobs
+  }
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: AppColors.whiteColor, // Keep the main background white
-    body: Column(
-      children: [
-        SizedBox(height: commonHeight(context) * 0.05),
-        homeDataLoading || userModel == null
-            ? SizedBox()
-            : TopBarWidget(
-                userName: userModel!.fullName,
-                imgPath: userModel!.profilePicture,
-              ),
-        homeDataLoading
-            ? Expanded(
-                child: Center(
-                  child: CircularProgressIndicator(color: AppColors.themeColor),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.whiteColor,
+      body: Column(
+        children: [
+          SizedBox(height: commonHeight(context) * 0.05),
+          homeDataLoading || userModel == null
+              ? SizedBox()
+              : TopBarWidget(
+                  userName: userModel!.fullName,
+                  imgPath: userModel!.profilePicture,
                 ),
-              )
-            : homeJobData.isEmpty
-                ? Expanded(
-                    child: Center(
-                      child: Text('No Jobs Found'),
-                    ),
-                  )
-                : Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          SizedBox(height: commonHeight(context) * 0.03),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 15.w), // ✅ Add horizontal padding
-                            child: SearchWidget(onSearchResults: updateSearchResults),
-                          ),
-                          SizedBox(height: 15.h),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 15.w), // ✅ Add horizontal padding
-                            child: DateSelectionWidget(
-                                onDateSelected: (selectedDate) {
-                              // TODO: Handle selected date
-                            }),
-                          ),
-                          SizedBox(height: commonHeight(context) * 0.03),
+          SizedBox(height: 15.h),
 
-                          // Blue Background Section for Jobs
-                          Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 10.w, vertical: 20.h),
-                            decoration: BoxDecoration(
-                              color: Color(0xFFD6E9FF), // Light Blue Background
-                              borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(30.r),
-                              ),
+          // ✅ Search Bar & Date Filter (Always Visible)
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 15.w),
+            child: SearchWidget(onSearchResults: updateSearchResults),
+          ),
+          SizedBox(height: 15.h),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 15.w),
+            child: DateSelectionWidget(
+              onDateSelected: (selectedDate) {
+                filterJobsByDate(selectedDate);
+              },
+            ),
+          ),
+          SizedBox(height: 15.h),
+
+          // ✅ Show "No Jobs Found" Message with Reset Button
+          homeDataLoading
+              ? Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(color: AppColors.themeColor),
+                  ),
+                )
+              : filteredJobs.isEmpty
+                  ? Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("No Jobs Found", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500)),
+                          SizedBox(height: 15.h),
+                          ElevatedButton(
+                            onPressed: resetFilter,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.themeColor,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
                             ),
-                            child: ListView.separated(
-                              padding: EdgeInsets.zero,
-                              separatorBuilder: (context, index) =>
-                                  SizedBox(height: 20.h),
-                              itemCount: filteredJobs.length,
-                              shrinkWrap: true,
-                              physics: NeverScrollableScrollPhysics(),
-                              itemBuilder: (context, index) {
-                                return JobWidget(
-                                  jobData: filteredJobs[index],
-                                );
-                              },
-                            ),
-                          )
+                            child: Text("Reset Filter", style: TextStyle(color: AppColors.whiteColor, fontSize: 14.sp)),
+                          ),
                         ],
                       ),
+                    )
+                  : Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            // ✅ Job List Container
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.h),
+                              decoration: BoxDecoration(
+                                color: Color(0xFFD6E9FF),
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(30.r)),
+                              ),
+                              child: ListView.separated(
+                                padding: EdgeInsets.zero,
+                                separatorBuilder: (context, index) => SizedBox(height: 20.h),
+                                itemCount: filteredJobs.length,
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemBuilder: (context, index) {
+                                  return JobWidget(jobData: filteredJobs[index]);
+                                },
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 }

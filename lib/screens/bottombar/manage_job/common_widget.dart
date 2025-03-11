@@ -428,10 +428,10 @@ class CommonJobWidget extends StatelessWidget {
             totalWage,
             style: CustomTextInter.bold14(Colors.black),
           ),
-          Text(
-            ratePerHour,
-            style: CustomTextInter.medium12(Colors.black),
-          ),
+          // Text(
+          //   ratePerHour,
+          //   style: CustomTextInter.medium12(Colors.black),
+          // ),
         ],
       ),
     );
