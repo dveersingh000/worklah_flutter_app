@@ -99,21 +99,22 @@ Widget build(BuildContext context) {
 }
 
   Widget _buildTransactionTabs() {
-    return Container(
-      height: 36.h,
-      child: Row(
-        children: [
-          _buildTabButton('Pending'),
-          SizedBox(width: 8.w),
-          _buildTabButton('Cashout'),
-          SizedBox(width: 8.w),
-          _buildTabButton('Received'),
-          SizedBox(width: 8.w),
-          _buildTabButton('Penalties'),
-        ],
-      ),
-    );
-  }
+  return SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: Row(
+      children: [
+        _buildTabButton('Pending'),
+        SizedBox(width: 8.w),
+        _buildTabButton('Cashout'),
+        SizedBox(width: 8.w),
+        _buildTabButton('Received'),
+        SizedBox(width: 8.w),
+        _buildTabButton('Penalties'),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildTabButton(String tabName) {
     bool isSelected = selectedTab == tabName;

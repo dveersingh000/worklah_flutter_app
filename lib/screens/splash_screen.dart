@@ -19,18 +19,22 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Future.delayed(Duration(seconds: 3), () {
-      checkOnboardingState();
+      checkAuthentication();
     });
   }
 
-  void checkOnboardingState() async {
-    String? loginComplete = await getLogin();
-    if (loginComplete != null && loginComplete.isNotEmpty) {
+  /// ✅ **Check if the user is authenticated**
+  void checkAuthentication() async {
+    String? loginToken = await getLoginToken(); // ✅ Get login token
+
+    if (loginToken != null && loginToken.isNotEmpty) {
+      // ✅ If token exists, navigate to Home Screen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => BottomBarScreen(index: 0)),
       );
     } else {
+      // ❌ If no token, go to Welcome Screen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => WelcomeScreen()),

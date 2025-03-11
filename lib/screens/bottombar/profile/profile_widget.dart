@@ -274,36 +274,34 @@ class MyWalletWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         color: AppColors.blackColor,
       ),
-      padding: EdgeInsets.all(15.h),
-      child: Column(
+      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 12.h), // Reduce bottom padding
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround, // Push amount to the right
         children: [
           Row(
             children: [
-              Icon(Icons.account_balance_wallet_outlined,
-                  color: AppColors.fieldBorderColor),
-              SizedBox(width: 5.w),
+              Icon(
+                Icons.account_balance_wallet_outlined,
+                color: AppColors.fieldBorderColor,
+                size: 20.sp,
+              ),
+              SizedBox(width: 8.w),
               Text(
-                'Your e-Wallet amount',
+                'Your E-Wallet amount',
                 style: CustomTextInter.medium12(AppColors.fieldBorderColor),
               ),
             ],
           ),
-          SizedBox(height: 5.h),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '\$$balance', // ✅ Ensure balance is always a string
-                  style: CustomTextInter.medium24(AppColors.whiteColor),
-                ),
-              ),
-            ],
+          Text(
+            '\$$balance', // Move balance to the right
+            style: CustomTextInter.medium24(AppColors.whiteColor),
           ),
         ],
       ),
     );
   }
 }
+
 
 class TotalCompleteJobStatus extends StatelessWidget {
   final int completedJobs;

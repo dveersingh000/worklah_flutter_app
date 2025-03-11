@@ -108,9 +108,23 @@ class _TopAppBarState extends State<TopAppBar> {
       surfaceTintColor: AppColors.whiteColor,
       automaticallyImplyLeading: false,
       elevation: 0,
-      title: Text(
-        widget.title,
-        style: CustomTextInter.medium20(AppColors.blackColor),
+      title: Row(
+        children: [
+          // WorkLah Logo inside a circular avatar
+          CircleAvatar(
+            radius: 18.w,
+            backgroundColor: Colors.transparent, // Ensure no unwanted background
+            child: Image.asset(
+              'assets/images/worklah_logo.png', // Make sure this path is correct
+              fit: BoxFit.contain,
+            ),
+          ),
+          SizedBox(width: 8.w), // Space between logo and title
+          Text(
+            widget.title,
+            style: CustomTextInter.medium20(AppColors.blackColor),
+          ),
+        ],
       ),
       leading: widget.isLeading
           ? IconButton(
