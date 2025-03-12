@@ -135,39 +135,50 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void onVerifyOTP() async {
-    setState(() {
-      isContinueLoading = true;
-    });
-    String phoneData = selectedCode + mobileControllers.text;
-    // String phoneData = mobileControllers.text;
+void onVerifyOTP() async {
+  setState(() {
+    isContinueLoading = true;
+  });
 
-    final Map<String, dynamic> registerData = {
-      "phoneNumber": phoneData,
-      "otp": otpControllers.text,
-    };
-    try {
-      var response = await ApiProvider()
-          .postRequest(apiUrl: '/api/auth/login', data: registerData);
-      toast(response['message']);
-      setState(() {
-        isContinueLoading = false;
-      });
-      await setLogin(phoneData);
-      await setLoginToken(response['token']);
-      await saveUserData(response['user']);
-      moveReplacePage(context, BottomBarScreen(index: 0));
-    } catch (e) {
-      log('Error during login: $e');
-      final errorMessage = e is Map ? e['message'] : 'An error occurred';
-      toast(errorMessage);
-      setState(() {
-        isContinueDisable = true;
-        isContinueLoading = false;
-        otpControllers.clear();
-      });
-    }
+  String phoneData = selectedCode + mobileControllers.text;
+  final Map<String, dynamic> registerData = {
+    "phoneNumber": phoneData,
+    "otp": otpControllers.text,
+  };
+
+  try {
+    var response = await ApiProvider()
+        .postRequest(apiUrl: '/api/auth/login', data: registerData);
+    toast(response['message']);
+
+    await setLogin(phoneData);
+    await setLoginToken(response['token']);
+
+    // ✅ Save token expiration time (assuming API returns `expiresIn` in seconds)
+    int expiresIn = response['expiresIn'] ?? 7200; // Default: 2 hours
+    await saveTokenExpiration(expiresIn);
+
+    await saveUserData(response['user']);
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => BottomBarScreen(index: 0)),
+    );
+
+    setState(() {
+      isContinueLoading = false;
+    });
+  } catch (e) {
+    log('Error during login: $e');
+    toast('Login failed, please try again');
+    
+    setState(() {
+      isContinueDisable = true;
+      isContinueLoading = false;
+      otpControllers.clear();
+    });
   }
+}
+
 
   @override
   void dispose() {

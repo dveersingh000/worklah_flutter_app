@@ -73,3 +73,20 @@ Future<void> removeUserData() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.remove('user');
 }
+
+Future<void> saveTokenExpiration(int expiresIn) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  DateTime expiryTime = DateTime.now().add(Duration(seconds: expiresIn));
+  await prefs.setString('tokenExpiry', expiryTime.toIso8601String());
+}
+
+Future<String?> getTokenExpiration() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('tokenExpiry');
+}
+
+Future<void> removeTokenExpiration() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.remove('tokenExpiry');
+}
+

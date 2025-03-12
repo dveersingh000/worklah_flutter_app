@@ -16,6 +16,11 @@ class ApiProvider {
       {required apiUrl, data = const <String, String>{}}) async {
     String? loginToken = await getLoginToken();
 
+     if (loginToken == null || loginToken.isEmpty) {
+    await handleUnauthorized();
+    return Future.error('Unauthorized access. Please login.');
+  }
+
     var res2 = await http.get(Uri.parse('$baseUrl$apiUrl'), headers: {
       'Accept': 'application/json',
       "accept": "application/json",
@@ -189,6 +194,7 @@ class ApiProvider {
     
     await removeLoginToken();
     await removeUserData();
+    await removeTokenExpiration();
 
     if (navigatorKey.currentState?.mounted ?? false) {
       navigatorKey.currentState?.pushAndRemoveUntil(
