@@ -76,16 +76,17 @@ class _TopBarWidgetState extends State<TopBarWidget> {
     );
 
     // ✅ Fetch Token from SharedPreferences
-  String? token = await getLoginToken();
-  if (token == null || token.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("User is not authenticated. Please login again.")),
-    );
-    return;
-  }
+    String? token = await getLoginToken();
+    if (token == null || token.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text("User is not authenticated. Please login again.")),
+      );
+      return;
+    }
 
-  // ✅ Ensure Bearer Token Format
-  request.headers['Authorization'] = "Bearer $token";
+    // ✅ Ensure Bearer Token Format
+    request.headers['Authorization'] = "Bearer $token";
     request.files.add(
       await http.MultipartFile.fromPath("profilePicture", imageFile.path),
     );
@@ -101,16 +102,17 @@ class _TopBarWidgetState extends State<TopBarWidget> {
     );
 
     // ✅ Fetch Token from SharedPreferences
-  String? token = await getLoginToken();
-  if (token == null || token.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("User is not authenticated. Please login again.")),
-    );
-    return;
-  }
+    String? token = await getLoginToken();
+    if (token == null || token.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text("User is not authenticated. Please login again.")),
+      );
+      return;
+    }
 
-  // ✅ Ensure Bearer Token Format
-  request.headers['Authorization'] = "Bearer $token";
+    // ✅ Ensure Bearer Token Format
+    request.headers['Authorization'] = "Bearer $token";
     request.files.add(
       http.MultipartFile.fromBytes("profilePicture", imageBytes,
           filename: "profile.jpg"),
@@ -379,8 +381,7 @@ class _TopBarWidgetState extends State<TopBarWidget> {
 }
 
 class SearchWidget extends StatefulWidget {
-  final Function(List<dynamic>)
-      onSearchResults; // Callback to pass data to parent
+  final Function(List<dynamic>) onSearchResults;
   const SearchWidget({super.key, required this.onSearchResults});
 
   @override
@@ -389,56 +390,162 @@ class SearchWidget extends StatefulWidget {
 
 class _SearchWidgetState extends State<SearchWidget> {
   TextEditingController searchController = TextEditingController();
+  String searchType = "jobName"; // Default search type
   Timer? debounce;
-  bool isSearching = false; // ✅ Indicates when the search is loading
-  bool showNoJobsMessage = false; // ✅ Controls "No Jobs Found" message
+  bool isSearching = false;
+  bool showNoJobsMessage = false;
 
-  // Function to call the search API
+  // Call API search using provided query and selected searchType
   void searchJobs(String query) {
     if (query.isEmpty) {
       setState(() {
-        widget.onSearchResults([]); // ✅ Reset to full list
-        showNoJobsMessage = false; // ✅ Hide "No Jobs Found" message
+        widget.onSearchResults([]);
+        showNoJobsMessage = false;
+        isSearching = false;
       });
       return;
     }
+
     setState(() {
-      isSearching = true; // ✅ Show loading indicator
-      showNoJobsMessage = false; // ✅ Hide "No Jobs Found" while searching
+      isSearching = true;
+      showNoJobsMessage = false;
     });
 
-    // Debounce API calls to reduce excessive requests
     debounce?.cancel();
     debounce = Timer(Duration(milliseconds: 500), () async {
       try {
         var response = await ApiProvider().getRequest(
-          apiUrl: '/api/jobs/search?jobName=$query',
+          apiUrl: '/api/jobs/search?$searchType=$query',
         );
+
         setState(() {
-          isSearching = false; // ✅ Hide loading indicator
+          isSearching = false;
         });
 
         if (response != null && response['success'] == true) {
           List<dynamic> searchResults = response['jobs'];
           widget.onSearchResults(searchResults);
-
           setState(() {
-            showNoJobsMessage = searchResults.isEmpty; // ✅ Show/Hide message
+            showNoJobsMessage = searchResults.isEmpty;
           });
         } else {
           setState(() {
             widget.onSearchResults([]);
-            showNoJobsMessage = true; // ✅ Show "No Jobs Found"
+            showNoJobsMessage = true;
           });
         }
       } catch (e) {
-        log('Error searching jobs: $e');
         setState(() {
           isSearching = false;
           widget.onSearchResults([]);
           showNoJobsMessage = true;
         });
       }
+    });
+  }
+
+  // Show bottom sheet for filter options
+  void showFilterOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SafeArea(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 🔹 Title
+                    Text(
+                      "Filter Search By",
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 15),
+
+                    // 🔹 Choice Chips (Filters)
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        _buildChoiceChip("Job Name", "jobName", setModalState),
+                        _buildChoiceChip(
+                            "Employer Name", "employerName", setModalState),
+                        _buildChoiceChip(
+                            "Outlet Name", "outletName", setModalState),
+                        _buildChoiceChip("Location", "location", setModalState),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // 🔹 Apply Filter Button (Fixed Issue)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          backgroundColor: AppColors.themeColor,
+                        ),
+                        child: const Text(
+                          "Apply Filter",
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+// 🔹 ChoiceChip Builder with Instant UI Updates
+  Widget _buildChoiceChip(String label, String value, Function setModalState) {
+    return ChoiceChip(
+      label: Text(label),
+      labelStyle: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: searchType == value ? Colors.white : Colors.black,
+      ),
+      selected: searchType == value,
+      selectedColor: AppColors.themeColor,
+      backgroundColor: Colors.grey[200],
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      onSelected: (_) {
+        setModalState(() {
+          // Update modal state instantly
+          searchType = value;
+        });
+        setState(() {}); // Update main screen state
+      },
+    );
+  }
+
+  void _updateSearchType(String type) {
+    setState(() {
+      searchType = type;
+      searchController.clear();
+      widget.onSearchResults([]);
+      showNoJobsMessage = false;
     });
   }
 
@@ -451,75 +558,83 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: Container(
-            height: 50.h,
-            decoration: BoxDecoration(
-              color: AppColors.whiteColor,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 10,
-                  spreadRadius: 0,
-                  offset: Offset(0, 3),
-                  color: AppColors.blackColor.withOpacity(0.1),
+        Row(
+          children: [
+            // 🔍 Search Input Field with Filter & Clear Button
+            Expanded(
+              child: Container(
+                height: 50,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                      color: Colors.black.withOpacity(0.1),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Padding(
-              padding: EdgeInsets.only(left: 10.w, right: 10.w),
-              child: TextFormField(
-                controller: searchController,
-                cursorColor: AppColors.fieldHintColor,
-                style: CustomTextInter.medium12(AppColors.blackColor),
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Search Jobs..',
-                  hintStyle: CustomTextInter.medium12(AppColors.fieldHintColor),
+                child: TextField(
+                  controller: searchController,
+                  onChanged: (value) => searchJobs(value),
+                  cursorColor: Colors.grey,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: "Search jobs...",
+                    prefixIcon: IconButton(
+                      icon: Icon(Icons.filter_list, color: Colors.grey),
+                      onPressed: showFilterOptions,
+                    ),
+                    suffixIcon: isSearching
+                        ? Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : (searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 20),
+                                onPressed: () {
+                                  searchController.clear();
+                                  searchJobs("");
+                                },
+                              )
+                            : null),
+                  ),
                 ),
-                onChanged: (value) {
-                  searchJobs(value);
-                },
               ),
             ),
-          ),
-        ),
-        SizedBox(width: 10.w),
-
-        // 🔍 Search Button
-        GestureDetector(
-          onTap: () {
-            searchJobs(searchController.text);
-          },
-          child: Container(
-            height: 50.h,
-            width: 50.w,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: AppColors.themeColor,
+            const SizedBox(width: 10),
+            // 🔍 Search Button
+            Container(
+              height: 50,
+              width: 50,
+              decoration: BoxDecoration(
+                color: AppColors.themeColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.search, color: Colors.white),
+                onPressed: () => searchJobs(searchController.text),
+              ),
             ),
-            child: Icon(Icons.search, color: AppColors.whiteColor),
-          ),
+          ],
         ),
-        SizedBox(width: 10.w),
 
-        // ⚙️ Filter Button
-        GestureDetector(
-          onTap: () {
-            // TODO: Implement filter logic (show modal or navigate to filter screen)
-          },
-          child: Container(
-            height: 50.h,
-            width: 50.w,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: AppColors.blackColor,
-            ),
-            child: Icon(Icons.tune, color: AppColors.whiteColor),
+        // 🔹 Show "No Jobs Found" Message
+        if (showNoJobsMessage)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Text("No jobs found",
+                style: Theme.of(context).textTheme.bodyLarge),
           ),
-        ),
       ],
     );
   }
@@ -539,7 +654,6 @@ class _FilterWidgetState extends State<FilterWidget> {
   String selectedEmployer = "";
 
   @override
-
   void initState() {
     super.initState();
     fetchEmployers();
@@ -597,7 +711,6 @@ class _FilterWidgetState extends State<FilterWidget> {
   }
 }
 
-
 class DateSelectionWidget extends StatefulWidget {
   final Function(String) onDateSelected;
   const DateSelectionWidget({super.key, required this.onDateSelected});
@@ -610,7 +723,8 @@ class _DateSelectionWidgetState extends State<DateSelectionWidget> {
   DateTime selectedDate = DateTime.now();
 
   List<DateTime> getNextSevenDays() {
-    return List.generate(7, (index) => DateTime.now().add(Duration(days: index)));
+    return List.generate(
+        7, (index) => DateTime.now().add(Duration(days: index)));
   }
 
   @override
@@ -647,22 +761,23 @@ class _DateSelectionWidgetState extends State<DateSelectionWidget> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.calendar_today, size: 18.sp, color: AppColors.blackColor),
+                Icon(Icons.calendar_today,
+                    size: 18.sp, color: AppColors.blackColor),
                 SizedBox(height: 3.h),
-                Text("Go to", style: CustomTextInter.medium10(AppColors.blackColor)),
-                Text("Date", style: CustomTextInter.medium10(AppColors.blackColor)),
+                Text("Go to",
+                    style: CustomTextInter.medium10(AppColors.blackColor)),
+                Text("Date",
+                    style: CustomTextInter.medium10(AppColors.blackColor)),
               ],
             ),
           ),
         ),
-
         Container(
           width: 1.5.w,
           height: 50.h,
           color: AppColors.fieldHintColor,
           margin: EdgeInsets.symmetric(horizontal: 8.w),
         ),
-
         Expanded(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -676,7 +791,8 @@ class _DateSelectionWidgetState extends State<DateSelectionWidget> {
                     });
 
                     // ✅ Convert DateTime to "YYYY-MM-DD" format
-                    String formattedDate = DateFormat('yyyy-MM-dd').format(date);
+                    String formattedDate =
+                        DateFormat('yyyy-MM-dd').format(date);
                     widget.onDateSelected(formattedDate);
                   },
                   child: Container(
@@ -684,23 +800,36 @@ class _DateSelectionWidgetState extends State<DateSelectionWidget> {
                     padding: EdgeInsets.symmetric(vertical: 12.h),
                     margin: EdgeInsets.symmetric(horizontal: 5.w),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.themeColor : Color(0xFFE6F0FF),
+                      color:
+                          isSelected ? AppColors.themeColor : Color(0xFFE6F0FF),
                       borderRadius: BorderRadius.circular(30.r),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][date.weekday % 7],
+                          [
+                            "Sun",
+                            "Mon",
+                            "Tue",
+                            "Wed",
+                            "Thu",
+                            "Fri",
+                            "Sat"
+                          ][date.weekday % 7],
                           style: CustomTextInter.medium12(
-                            isSelected ? AppColors.whiteColor : AppColors.blackColor,
+                            isSelected
+                                ? AppColors.whiteColor
+                                : AppColors.blackColor,
                           ),
                         ),
                         SizedBox(height: 3.h),
                         Text(
                           date.day.toString(),
                           style: CustomTextInter.bold18(
-                            isSelected ? AppColors.whiteColor : AppColors.blackColor,
+                            isSelected
+                                ? AppColors.whiteColor
+                                : AppColors.blackColor,
                           ),
                         ),
                       ],
@@ -924,10 +1053,6 @@ class _JobWidgetState extends State<JobWidget> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(
-                          'Est. Wage:',
-                          style: CustomTextInter.medium12(Colors.grey),
-                        ),
                         Container(
                           padding: EdgeInsets.symmetric(
                               horizontal: 10.w, vertical: 5.h),
@@ -935,23 +1060,20 @@ class _JobWidgetState extends State<JobWidget> {
                             color: Colors.yellow[700],
                             borderRadius: BorderRadius.circular(8.r),
                           ),
-                          child: RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text:
-                                      '\$${widget.jobData['estimatedWage'] ?? '0'}',
-                                  style: CustomTextInter.bold14(
-                                      AppColors.blackColor),
-                                ),
-                                // TextSpan(
-                                //   text:
-                                //       ' (${widget.jobData['payRatePerHour']})',
-                                //   style: CustomTextInter.medium12(
-                                //       AppColors.blackColor),
-                                // ),
-                              ],
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                'S${widget.jobData['payRatePerHour'] ?? '0'}',
+                                style: CustomTextInter.bold14(
+                                    AppColors.blackColor),
+                              ),
+                              Text(
+                                '(Est: S\$${widget.jobData['estimatedWage'] ?? '0'})',
+                                style: CustomTextInter.medium12(
+                                    AppColors.blackColor),
+                              ),
+                            ],
                           ),
                         ),
                       ],
