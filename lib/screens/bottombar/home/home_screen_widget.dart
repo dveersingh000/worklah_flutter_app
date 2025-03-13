@@ -722,17 +722,19 @@ class DateSelectionWidget extends StatefulWidget {
 class _DateSelectionWidgetState extends State<DateSelectionWidget> {
   DateTime selectedDate = DateTime.now();
 
-  List<DateTime> getNextSevenDays() {
+  /// ✅ Function to get dates from today to the next 30 days (one month)
+  List<DateTime> getNextMonthDays() {
     return List.generate(
-        7, (index) => DateTime.now().add(Duration(days: index)));
+        30, (index) => DateTime.now().add(Duration(days: index)));
   }
 
   @override
   Widget build(BuildContext context) {
-    List<DateTime> dates = getNextSevenDays();
+    List<DateTime> dates = getNextMonthDays();
 
     return Row(
       children: [
+        /// **📅 Date Picker Button**
         GestureDetector(
           onTap: () async {
             DateTime? picked = await showDatePicker(
@@ -746,7 +748,7 @@ class _DateSelectionWidgetState extends State<DateSelectionWidget> {
                 selectedDate = picked;
               });
 
-              // ✅ Convert DateTime to "YYYY-MM-DD" format
+              /// ✅ Convert DateTime to "YYYY-MM-DD" format
               String formattedDate = DateFormat('yyyy-MM-dd').format(picked);
               widget.onDateSelected(formattedDate);
             }
@@ -772,25 +774,30 @@ class _DateSelectionWidgetState extends State<DateSelectionWidget> {
             ),
           ),
         ),
+
+        /// **Vertical Divider**
         Container(
           width: 1.5.w,
           height: 50.h,
           color: AppColors.fieldHintColor,
           margin: EdgeInsets.symmetric(horizontal: 8.w),
         ),
+
+        /// **📆 Horizontal Scrollable Date Selector (Now for One Month)**
         Expanded(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: dates.map((date) {
-                bool isSelected = selectedDate.day == date.day;
+                bool isSelected = selectedDate.day == date.day &&
+                    selectedDate.month == date.month;
                 return GestureDetector(
                   onTap: () {
                     setState(() {
                       selectedDate = date;
                     });
 
-                    // ✅ Convert DateTime to "YYYY-MM-DD" format
+                    /// ✅ Convert DateTime to "YYYY-MM-DD" format
                     String formattedDate =
                         DateFormat('yyyy-MM-dd').format(date);
                     widget.onDateSelected(formattedDate);
@@ -808,15 +815,7 @@ class _DateSelectionWidgetState extends State<DateSelectionWidget> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          [
-                            "Sun",
-                            "Mon",
-                            "Tue",
-                            "Wed",
-                            "Thu",
-                            "Fri",
-                            "Sat"
-                          ][date.weekday % 7],
+                          DateFormat.E().format(date), // Mon, Tue, etc.
                           style: CustomTextInter.medium12(
                             isSelected
                                 ? AppColors.whiteColor

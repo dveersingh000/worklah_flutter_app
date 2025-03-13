@@ -18,8 +18,8 @@ class AvailableShiftsWidget extends StatefulWidget {
 }
 
 class _AvailableShiftsWidgetState extends State<AvailableShiftsWidget> {
-  Map<String, bool> expandedSections = {}; // Track expanded states
   List<dynamic> shiftData = [];
+
   @override
   void initState() {
     super.initState();
@@ -35,268 +35,162 @@ class _AvailableShiftsWidgetState extends State<AvailableShiftsWidget> {
     });
   }
 
-  void toggleSectionExpansion(String date, int sectionIndex) {
-  setState(() {
-    expandedSections[date] = !(expandedSections[date] ?? false);
-
-    // ✅ Reset selection when expanding again
-    if (expandedSections[date] == true) {
-      for (var shift in shiftData[sectionIndex]['shifts']) {
-        shift['isSelected'] = false; // ✅ Reset selection
-      }
-    }
-  });
-}
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      // decoration: BoxDecoration(
-      //   color: AppColors.themeColor.withOpacity(0.5), // ✅ Blue Background
-      //   borderRadius: BorderRadius.circular(20.r),
-      // ),
       padding: EdgeInsets.symmetric(vertical: 5.h, horizontal: 5.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // SizedBox(height: 10.h),
-
-          // ✅ Scrollable Shift Sections
+          // ✅ Scrollable Shift Sections (Always Visible)
           ListView.builder(
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
-            itemCount: widget.availableShiftsData.length,
+            itemCount: shiftData.length,
             itemBuilder: (context, index) {
-              var shiftGroup = widget.availableShiftsData[index];
-              bool isExpanded = expandedSections[shiftGroup["date"]] ?? false;
+              var shiftGroup = shiftData[index];
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 📅 Shift Date Header with Dropdown
-                  GestureDetector(
-                    onTap: () => toggleSectionExpansion(shiftGroup["date"], index),
-                    child: Container(
-                      margin: EdgeInsets.symmetric(vertical: 5.h),
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
-                      decoration: BoxDecoration(
-                        color: AppColors.themeColor.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(10.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 5,
-                            spreadRadius: 1,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // 📅 Date
-                          Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 10.w, vertical: 8.h),
-                                decoration: BoxDecoration(
-                                  color: AppColors.lightGreyColor,
-                                  borderRadius: BorderRadius.circular(8.r),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
+                  // 📅 Shift Date Header (Always Visible)
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 5.h),
+                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+                    decoration: BoxDecoration(
+                      color: AppColors.themeColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // 📅 Date
+                        Row(
+                          children: [
+                            Icon(Icons.calendar_today, size: 18.sp, color: AppColors.blackColor),
+                            SizedBox(width: 8.w),
+                            Text(
+                              shiftGroup["date"],
+                              style: CustomTextInter.medium16(AppColors.blackColor),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              "${shiftGroup['appliedShifts']} Applied | ",
+                              style: CustomTextInter.medium12(AppColors.blackColor),
+                            ),
+                            Text(
+                              "${shiftGroup['availableShifts']} Available",
+                              style: CustomTextInter.medium12(Colors.blue),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 🔹 Shift Cards (Always Visible)
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: ClampingScrollPhysics(),
+                    itemCount: shiftGroup['shifts'].length,
+                    separatorBuilder: (context, _) => SizedBox(height: 10.h),
+                    itemBuilder: (context, shiftIndex) {
+                      var shift = shiftGroup['shifts'][shiftIndex];
+
+                      return Container(
+                        margin: EdgeInsets.symmetric(horizontal: 10.w),
+                        padding: EdgeInsets.all(12.w),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10.r),
+                          color: AppColors.themeColor.withOpacity(0.3),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // 🕒 Shift Timing
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
                                   children: [
+                                    _timeBox(shift['startTime']),
+                                    SizedBox(width: 5.w),
+                                    Text("to"),
+                                    SizedBox(width: 5.w),
+                                    _timeBox(shift['endTime']),
+                                  ],
+                                ),
+                                _availabilityBox(shift['vacancy'].toString(), shift['standbyVacancy'].toString()),
+                              ],
+                            ),
+                            Divider(),
+                            SizedBox(height: 10.h),
+                            // ⏳ Duration & Break
+                            Row(
+                              children: [
+                                Icon(Icons.access_time, color: AppColors.themeColor, size: 18.sp),
+                                SizedBox(width: 5.w),
+                                Text("${shift['duration']} hrs duration", style: CustomTextInter.medium12(AppColors.blackColor)),
+                                Spacer(),
+                                Icon(Icons.coffee, color: AppColors.themeColor, size: 18.sp),
+                                SizedBox(width: 5.w),
+                                Text(
+                                  "${shift['breakDuration']} hr break (${shift['breakPaid']})",
+                                  style: CustomTextInter.medium12(AppColors.blackColor),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 10.h),
+
+                            // 💲 Wage
+                            Row(
+                              children: [
+                                Icon(Icons.currency_exchange, color: AppColors.themeColor, size: 18.sp),
+                                SizedBox(width: 5.w),
+                                Text("${shift['totalWage']} (${shift['payRate']}/hr)", style: CustomTextInter.medium12(AppColors.blackColor)),
+                              ],
+                            ),
+                            Divider(),
+
+                            // ✅ Apply / Selected Button
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  toggleShiftSelection(index, shiftIndex);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: shift['isSelected']
+                                      ? Colors.green
+                                      : AppColors.themeColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10.r),
+                                  ),
+                                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    if (shift['isSelected']) // ✅ Show tick only if selected
+                                      Icon(Icons.check_circle, color: AppColors.whiteColor, size: 18.sp),
+                                    if (shift['isSelected'])
+                                      SizedBox(width: 6.w), // ✅ Add spacing
                                     Text(
-                                      shiftGroup["date"].split(" ")[0],
-                                      style: CustomTextInter.bold16(
-                                          AppColors.blackColor),
-                                    ),
-                                    Text(
-                                      shiftGroup["date"].split(" ")[1] +
-                                          " " +
-                                          shiftGroup["date"].split(" ")[2],
-                                      style: CustomTextInter.medium12(
-                                          AppColors.blackColor),
+                                      shift['isSelected'] ? "Selected" : "Select",
+                                      style: CustomTextInter.bold16(AppColors.whiteColor),
                                     ),
                                   ],
                                 ),
                               ),
-                              SizedBox(width: 20.w),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Column(
-                                    children: [
-                                      Text(
-                                        "${shiftGroup['appliedShifts']} ",
-                                        style: CustomTextInter.bold14(
-                                            Colors.green),
-                                      ),
-                                      Text(
-                                        "Applied Shifts",
-                                        style: CustomTextInter.medium12(
-                                            AppColors.blackColor),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(width: 20.w),
-                                  Column(
-                                    children: [
-                                      Text(
-                                        "${shiftGroup['availableShifts']} ",
-                                        style:
-                                            CustomTextInter.bold14(Colors.blue),
-                                      ),
-                                      Text(
-                                        "Available Shifts",
-                                        style: CustomTextInter.medium12(
-                                            AppColors.blackColor),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          Icon(
-                            isExpanded
-                                ? Icons.keyboard_arrow_up
-                                : Icons.keyboard_arrow_down,
-                            color: AppColors.blackColor,
-                          ),
-                        ],
-                      ),
-                    ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-
-                  // 🔹 Shift Cards (Only Show if Expanded)
-                  if (isExpanded)
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: ClampingScrollPhysics(),
-                      itemCount: shiftGroup['shifts'].length,
-                      separatorBuilder: (context, _) => SizedBox(height: 10.h),
-                      itemBuilder: (context, shiftIndex) {
-                        var shift = shiftGroup['shifts'][shiftIndex];
-
-                        return Container(
-                          margin: EdgeInsets.symmetric(horizontal: 10.w),
-                          padding: EdgeInsets.all(12.w),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10.r),
-                            color: AppColors.themeColor.withOpacity(0.3),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 5,
-                                spreadRadius: 1,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // 🕒 Shift Timing
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      _timeBox(shift['startTime']),
-                                      SizedBox(width: 5.w),
-                                      Text("to"),
-                                      SizedBox(width: 5.w),
-                                      _timeBox(shift['endTime']),
-                                    ],
-                                  ),
-                                  _availabilityBox(shift['vacancy'].toString(),
-                                      shift['standbyVacancy'].toString()),
-                                ],
-                              ),
-                              Divider(),
-                              SizedBox(height: 10.h),
-                              // ⏳ Duration & Break
-                              Row(
-                                children: [
-                                  Icon(Icons.access_time,
-                                      color: AppColors.themeColor, size: 18.sp),
-                                  SizedBox(width: 5.w),
-                                  Text("${shift['duration']} hrs duration",
-                                      style: CustomTextInter.medium12(
-                                          AppColors.blackColor)),
-                                  Spacer(),
-                                  Icon(Icons.coffee,
-                                      color: AppColors.themeColor, size: 18.sp),
-                                  SizedBox(width: 5.w),
-                                  Text(
-                                    "${shift['breakDuration']} hr break (${shift['breakPaid']})",
-                                    style: CustomTextInter.medium12(
-                                        AppColors.blackColor),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 10.h),
-
-                              // 💲 Wage
-                              Row(
-                                children: [
-                                  Icon(Icons.currency_exchange,
-                                      color: AppColors.themeColor, size: 18.sp),
-                                  SizedBox(width: 5.w),
-                                  Text(
-                                      "${shift['totalWage']} (${shift['payRate']}/hr)",
-                                      style: CustomTextInter.medium12(
-                                          AppColors.blackColor)),
-                                ],
-                              ),
-                              Divider(),
-                              // ✅ Apply / Selected Button
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    toggleShiftSelection(index, shiftIndex);
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: shift['isSelected']
-                                        ? Colors.green
-                                        : AppColors.themeColor,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10.r),
-                                    ),
-                                    padding:
-                                        EdgeInsets.symmetric(vertical: 12.h),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      if (shift[
-                                          'isSelected']) // ✅ Show tick only if selected
-                                        Icon(Icons.check_circle,
-                                            color: AppColors.whiteColor,
-                                            size: 18.sp),
-                                      if (shift['isSelected'])
-                                        SizedBox(width: 6.w), // ✅ Add spacing
-                                      Text(
-                                        shift['isSelected']
-                                            ? "Selected"
-                                            : "Select",
-                                        style: CustomTextInter.bold16(
-                                            AppColors.whiteColor),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
                 ],
               );
             },
@@ -307,12 +201,12 @@ class _AvailableShiftsWidgetState extends State<AvailableShiftsWidget> {
   }
 }
 
-Widget _timeBox(String time, {bool isSelected = false, bool isBlack = false}) {
+Widget _timeBox(String time) {
   return Container(
     padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(20.r),
-      color: isBlack ? Colors.black : AppColors.themeColor.withOpacity(0.9),
+      color: AppColors.themeColor.withOpacity(0.9),
     ),
     child: Text(
       time,
@@ -325,36 +219,30 @@ Widget _availabilityBox(String applied, String standby) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.end,
     children: [
-      _pillWithIcon(
-          applied, applied != "0" ? Colors.green : AppColors.fieldHintColor, 
-          Icons.person, applied != "0" ? Colors.green : Colors.grey),
+      _pillWithIcon(applied, applied != "0" ? Colors.green : AppColors.fieldHintColor, Icons.person, applied != "0" ? Colors.green : Colors.grey),
       SizedBox(width: 3.w), 
-      _pillWithIcon(
-          standby, standby != "0" ? AppColors.orangeColor : AppColors.fieldHintColor, 
-          Icons.person, standby != "0" ? AppColors.orangeColor : Colors.grey),
+      _pillWithIcon(standby, standby != "0" ? AppColors.orangeColor : AppColors.fieldHintColor, Icons.person, standby != "0" ? AppColors.orangeColor : Colors.grey),
     ],
   );
 }
-Widget _pillWithIcon(
-    String text, Color bgColor, IconData icon, Color iconColor) {
+
+Widget _pillWithIcon(String text, Color bgColor, IconData icon, Color iconColor) {
   return Container(
-    padding:
-        EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h), // Reduced padding
+    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
     decoration: BoxDecoration(
       color: bgColor.withOpacity(0.2),
       borderRadius: BorderRadius.circular(15.r),
     ),
     child: Row(
       children: [
-        Icon(icon, color: iconColor, size: 12.sp), // Smaller icon
+        Icon(icon, color: iconColor, size: 12.sp),
         SizedBox(width: 2.w),
-        Text(text,
-            style: CustomTextInter.regular10(
-                AppColors.blackColor)), // Smaller font
+        Text(text, style: CustomTextInter.regular10(AppColors.blackColor)),
       ],
     ),
   );
 }
+
 
 Widget _pill(String text, Color color) {
   return Container(

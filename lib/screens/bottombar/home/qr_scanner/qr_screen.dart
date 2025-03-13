@@ -27,20 +27,29 @@ class _ShiftSelectionScreenState extends State<ShiftSelectionScreen> {
     fetchUpcomingShifts();
   }
 
-  Future<void> fetchUpcomingShifts() async {
-    try {
-      var response = await ApiProvider().getRequest(apiUrl: '/api/qr/upcoming');
+ Future<void> fetchUpcomingShifts() async {
+  try {
+    var response = await ApiProvider().getRequest(apiUrl: '/api/qr/upcoming');
+
+    if (response['shifts'] != null && response['shifts'].isNotEmpty) {
       setState(() {
-        shifts = response['shifts'] ?? [];
+        shifts = response['shifts'];
         isLoading = false;
       });
-    } catch (e) {
-      toast('Error fetching shifts');
+    } else {
       setState(() {
+        shifts = [];
         isLoading = false;
       });
     }
+  } catch (e) {
+    toast('Error fetching shifts');
+    setState(() {
+      isLoading = false;
+    });
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

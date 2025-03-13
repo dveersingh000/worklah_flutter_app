@@ -32,6 +32,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
   List<dynamic> availableShiftsData = [];
   bool profileCompleted = false;
   int selectedIndex = 0;
+  final ScrollController _scrollController = ScrollController();
 
   // ✅ Capture Selected Shifts from AvailableShiftsWidget
   List<dynamic> getSelectedShifts() {
@@ -124,6 +125,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
           Expanded(
             // Makes body scrollable while buttons remain fixed
             child: SingleChildScrollView(
+              controller: _scrollController,
               child: Column(
                 children: [
                   SizedBox(height: commonHeight(context) * 0.01),
@@ -314,26 +316,39 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                   ),
                                   SizedBox(height: 20.h),
 
-                                  /// ✅ Button Appears Normally at the End
-                                  Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 20.w),
-                                    child: Column(
-                                      children: [
-                                        /// ✅ "Preview" Button (Always Enabled)
-                                        SizedBox(
-                                          width: double.infinity,
-                                          height: 50.h,
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              List<dynamic> selectedShifts =
-                                                  getSelectedShifts();
-                                              if (selectedShifts.isEmpty) {
-                                                // **Show toast message if no shift is selected**
-                                                toast(
-                                                    "Please select at least one shift before proceeding.");
-                                                return; // Stop further execution
-                                              }
+                                  /// ✅ Preview Button with Shift Validation
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20.w),
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 50.h,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        List<dynamic> selectedShifts = getSelectedShifts();
+
+                                        if (selectedShifts.isEmpty) {
+                                          // ✅ Scroll to Available Shifts
+                                          _scrollController.animateTo(
+                                            300.h, // Adjust this value if needed
+                                            duration: Duration(milliseconds: 500),
+                                            curve: Curves.easeInOut,
+                                          );
+
+                                          // ✅ Show Snackbar Prompt
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                "Please select at least one shift before proceeding.",
+                                                style: CustomTextInter.medium12(Colors.white),
+                                              ),
+                                              backgroundColor: Colors.red,
+                                              duration: Duration(seconds: 2),
+                                            ),
+                                          );
+                                          return; // ✅ Stop further execution
+                                        }
                                               if (profileCompleted) {
                                                 // ✅ Wrap with BottomBarScreen so it includes the bottom navigation bar
                                                 Navigator.push(

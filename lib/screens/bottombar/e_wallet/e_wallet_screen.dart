@@ -117,33 +117,34 @@ Widget build(BuildContext context) {
 
 
   Widget _buildTabButton(String tabName) {
-    bool isSelected = selectedTab == tabName;
-    return InkWell(
-      onTap: () {
-        setState(() {
-          selectedTab = tabName;
-        });
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.black : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: isSelected ? null : Border.all(color: Colors.grey[300]!),
-        ),
-        child: Center(
-          child: Text(
-            tabName,
-            style: TextStyle(
-              color: isSelected ? Colors.white : Colors.black,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+  bool isSelected = selectedTab == tabName;
+  return InkWell(
+    onTap: () {
+      setState(() {
+        selectedTab = tabName;
+      });
+    },
+    child: Container(
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h), // Increased padding
+      decoration: BoxDecoration(
+        color: isSelected ? Colors.black : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: isSelected ? null : Border.all(color: Colors.grey[300]!),
+      ),
+      child: Center(
+        child: Text(
+          tabName,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.black,
+            fontSize: 14.sp, // Increased font size
+            fontWeight: FontWeight.w600, // Made text slightly bolder
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Widget _buildTransactionsList() {
     if (selectedTab == 'Pending') {
