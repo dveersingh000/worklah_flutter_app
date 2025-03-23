@@ -40,25 +40,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     try {
-      var response =
-          await ApiProvider().getRequest(apiUrl: '/api/profile/stats');
+  var response = await ApiProvider().getRequest(apiUrl: '/api/profile/stats');
 
-      if (response != null) {
-        setState(() {
-          profileData = response; // ✅ Assign API response directly
-          isProfileLoading = false;
-        });
-      } else {
-        throw Exception("Invalid response received");
-      }
-    } catch (e) {
-      log('Error during Res: $e');
-      final errorMessage = e is Map ? e['message'] : 'An error occurred';
-      toast(errorMessage);
-      setState(() {
-        isProfileLoading = false;
-      });
-    }
+  if (response != null && response is Map<String, dynamic>) {
+    setState(() {
+      profileData = response;
+      isProfileLoading = false;
+    });
+  } else {
+    throw Exception("Invalid response received");
+  }
+} catch (e) {
+  log('Error fetching profile: $e');
+  toast('Failed to load profile. Please try again.');
+  setState(() {
+    isProfileLoading = false;
+  });
+}
+
   }
 
   void navigateToUpdateProfile() {

@@ -30,12 +30,11 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isHovered = false; // State to track hover
   bool isOtpHovered = false;
   List<Map<String, String>> countryCodes = [
-    {'code': '+65', 'flag': ImagePath.singaporeFlag}, // Singapore
+    {'code': '+65', 'flag': ImagePath.singaporeFlag}, 
     {
-      'code': '+60',
-      'flag': ImagePath.singaporeFlag
-    }, // Malaysia (Assuming you add this in ImagePath)
-    {'code': '+91', 'flag': ImagePath.indiaFlag}, // India
+      'code': '+60', 'flag': ImagePath.malaysiaFlag
+    }, 
+    {'code': '+91', 'flag': ImagePath.indiaFlag}, 
   ];
   String selectedCode = '+65';
 
@@ -135,50 +134,49 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-void onVerifyOTP() async {
-  setState(() {
-    isContinueLoading = true;
-  });
-
-  String phoneData = selectedCode + mobileControllers.text;
-  final Map<String, dynamic> registerData = {
-    "phoneNumber": phoneData,
-    "otp": otpControllers.text,
-  };
-
-  try {
-    var response = await ApiProvider()
-        .postRequest(apiUrl: '/api/auth/login', data: registerData);
-    toast(response['message']);
-
-    await setLogin(phoneData);
-    await setLoginToken(response['token']);
-
-    // ✅ Save token expiration time (assuming API returns `expiresIn` in seconds)
-    int expiresIn = response['expiresIn'] ?? 7200; // Default: 2 hours
-    await saveTokenExpiration(expiresIn);
-
-    await saveUserData(response['user']);
-
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => BottomBarScreen(index: 0)),
-    );
-
+  void onVerifyOTP() async {
     setState(() {
-      isContinueLoading = false;
+      isContinueLoading = true;
     });
-  } catch (e) {
-    log('Error during login: $e');
-    toast('Login failed, please try again');
-    
-    setState(() {
-      isContinueDisable = true;
-      isContinueLoading = false;
-      otpControllers.clear();
-    });
+
+    String phoneData = selectedCode + mobileControllers.text;
+    final Map<String, dynamic> registerData = {
+      "phoneNumber": phoneData,
+      "otp": otpControllers.text,
+    };
+
+    try {
+      var response = await ApiProvider()
+          .postRequest(apiUrl: '/api/auth/login', data: registerData);
+      toast(response['message']);
+
+      await setLogin(phoneData);
+      await setLoginToken(response['token']);
+
+      // ✅ Save token expiration time (assuming API returns `expiresIn` in seconds)
+      int expiresIn = response['expiresIn'] ?? 7200; // Default: 2 hours
+      await saveTokenExpiration(expiresIn);
+
+      await saveUserData(response['user']);
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => BottomBarScreen(index: 0)),
+      );
+
+      setState(() {
+        isContinueLoading = false;
+      });
+    } catch (e) {
+      log('Error during login: $e');
+      toast('Login failed, please try again');
+
+      setState(() {
+        isContinueDisable = true;
+        isContinueLoading = false;
+        otpControllers.clear();
+      });
+    }
   }
-}
-
 
   @override
   void dispose() {
@@ -461,31 +459,16 @@ void onVerifyOTP() async {
                                   AppColors.blackColor),
                             ),
                             SizedBox(
-                                height: 12.h), // Space between text and button
-                            SizedBox(
-                              width: double
-                                  .infinity, // Match the Continue button width
-                              child: OutlinedButton(
-                                onPressed: () {
-                                  moveToNext(context, RegisterScreen());
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(
-                                      color:
-                                          AppColors.themeColor), // Blue border
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 18.h), // Match button height
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8.r),
-                                  ),
-                                ),
-                                child: Text(
-                                  'Create Account',
-                                  style: CustomTextInter.regular14(
-                                      AppColors.themeColor),
-                                ),
-                              ),
-                            ),
+                                height: 10.h), // Space between text and button
+                           CustomButton(
+                    onTap: () {
+                      moveToNext(context, RegisterScreen());
+                    },
+                    text: 'Create Account',
+                    backgroundColor: AppColors.whiteColor,
+                    textStyle: CustomTextInter.regular14(AppColors.themeColor),
+                    borderColor: AppColors.themeColor,
+                  ),
                           ],
                         ),
                       ),

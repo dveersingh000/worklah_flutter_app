@@ -197,11 +197,20 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                           )
                         : widget.profileCompleted
                             ? Image.network(
-                                widget.profileIMG,
-                                fit: BoxFit.cover,
-                                height: 95.h,
-                                width: 95.w,
-                              )
+  widget.profileIMG,
+  fit: BoxFit.cover,
+  height: 95.h,
+  width: 95.w,
+  errorBuilder: (context, error, stackTrace) {
+    return Image.asset(
+      ImagePath.personIMG, // Default placeholder image
+      fit: BoxFit.cover,
+      height: 95.h,
+      width: 95.w,
+    );
+  },
+)
+
                             : Image.asset(
                                 ImagePath.personIMG,
                                 fit: BoxFit.cover,

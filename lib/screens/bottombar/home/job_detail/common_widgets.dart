@@ -85,19 +85,21 @@ class JobRequirements extends StatelessWidget {
 }
 
 class LocationWidget extends StatelessWidget {
-  final locationData;
+  final Map<String, dynamic>? locationData;
+
   const LocationWidget({super.key, this.locationData});
 
   @override
   Widget build(BuildContext context) {
+    final String? lat = locationData?['latitude']?.toString();
+    final String? lng = locationData?['longitude']?.toString();
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(
-              Icons.location_on_outlined,
-              color: AppColors.blackColor,
-            ),
+            Icon(Icons.location_on_outlined, color: AppColors.blackColor),
             SizedBox(width: 5.w),
             Expanded(
               child: Text(
@@ -110,15 +112,11 @@ class LocationWidget extends StatelessWidget {
                 children: <TextSpan>[
                   TextSpan(
                     text: 'Map/',
-                    style: CustomTextInter.light16(
-                      AppColors.blackColor,
-                    ),
+                    style: CustomTextInter.light16(AppColors.blackColor),
                   ),
                   TextSpan(
                     text: 'Satellite',
-                    style: CustomTextInter.light16(
-                      AppColors.textGreyColor,
-                    ),
+                    style: CustomTextInter.light16(AppColors.textGreyColor),
                   ),
                 ],
               ),
@@ -128,10 +126,25 @@ class LocationWidget extends StatelessWidget {
         SizedBox(height: 10.h),
         GestureDetector(
           onTap: () async {
-            await openMap(
-              locationData['latitude'].toString(),
-              locationData['longitude'].toString(),
-            );
+            if (lat != null && lng != null) {
+              try {
+                await openMap(lat, lng);
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Failed to open map."),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Invalid location coordinates."),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
           },
           child: Image.asset(ImagePath.mapIMG),
         ),
@@ -139,6 +152,7 @@ class LocationWidget extends StatelessWidget {
     );
   }
 }
+
 
 class EmployerWidget extends StatelessWidget {
   final String employerName;

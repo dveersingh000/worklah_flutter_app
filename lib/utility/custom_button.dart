@@ -12,6 +12,7 @@ class CustomButton extends StatelessWidget {
   final String text;
   final TextStyle? textStyle;
   final Color? backgroundColor;
+  final Color? borderColor;
   final bool isDisable;
   final bool isLoading;
   const CustomButton({
@@ -22,6 +23,7 @@ class CustomButton extends StatelessWidget {
     required this.text,
     this.textStyle,
     this.backgroundColor,
+    this.borderColor,
     this.isDisable = false,
     this.isLoading = false,
   });
@@ -41,6 +43,9 @@ class CustomButton extends StatelessWidget {
           color: isDisable
               ? AppColors.themeColor.withOpacity(0.3)
               : backgroundColor ?? AppColors.themeColor,
+          border: borderColor != null
+              ? Border.all(color: borderColor!) // ✅ Apply border if provided
+              : null,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Center(

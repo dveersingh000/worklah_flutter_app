@@ -80,88 +80,120 @@ class ApiProvider {
     }
   }
 
-  Future<dynamic> putRequest(
-      {required apiUrl,
-      Map<String, dynamic> data = const <String, String>{},
-      int? id}) async {
-    var res2 = await http
-        .put(Uri.parse('$baseUrl$apiUrl'), body: jsonEncode(data), headers: {
+Future<dynamic> putRequest({
+  required String apiUrl,
+  Map<String, dynamic> data = const <String, String>{},
+  int? id,
+}) async {
+  String? loginToken = await getLoginToken();
+
+  if (loginToken == null || loginToken.isEmpty) {
+    await handleUnauthorized();
+    return Future.error('Unauthorized access. Please login.');
+  }
+
+  var res2 = await http.put(
+    Uri.parse('$baseUrl$apiUrl'),
+    body: jsonEncode(data),
+    headers: {
       "content-type": "application/json",
       "accept": "application/json",
-    });
-    print("URL ::: ${"$baseUrl$apiUrl"}");
-    print("REQUEST ::: ${"$data"}");
-    print("RESPONCE :::  ${res2.body}");
-    print("CODE :::  ${res2.statusCode}");
-    var res = jsonDecode(res2.body) as Map<String, dynamic>;
-    if (res2.statusCode == 200) {
-      return res;
-    } else if (res2.statusCode == 401) {
-      // 🔥 Unauthorized - Redirect to Login
-      await handleUnauthorized();
-      return Future.error('Session expired. Please login again.');
-    } else if (res2.statusCode == 404) {
-      return Future.error(res);
-    } else if (res2.statusCode == 500) {
-      return Future.error(res);
-    } else {
-      return Future.error('Network Problem');
-    }
+      "Authorization": "Bearer $loginToken", // ✅ FIXED: Add token
+    },
+  );
+
+  print("URL ::: ${"$baseUrl$apiUrl"}");
+  print("REQUEST ::: ${"$data"}");
+  print("RESPONCE :::  ${res2.body}");
+  print("CODE :::  ${res2.statusCode}");
+
+  var res = jsonDecode(res2.body) as Map<String, dynamic>;
+
+  if (res2.statusCode == 200) {
+    return res;
+  } else if (res2.statusCode == 401) {
+    await handleUnauthorized();
+    return Future.error('Session expired. Please login again.');
+  } else if (res2.statusCode == 400 || res2.statusCode == 404 || res2.statusCode == 500) {
+    return Future.error(res);
+  } else {
+    return Future.error('Network Problem');
+  }
+}
+
+
+  Future<dynamic> deleteRequest({
+  required apiUrl,
+  Map<String, dynamic> data = const <String, String>{},
+  int? id,
+}) async {
+  String? loginToken = await getLoginToken();
+
+  if (loginToken == null || loginToken.isEmpty) {
+    await handleUnauthorized();
+    return Future.error('Unauthorized access. Please login.');
   }
 
-  Future<dynamic> deleteRequest(
-      {required apiUrl,
-      Map<String, dynamic> data = const <String, String>{},
-      int? id}) async {
-    var res2 = await http
-        .delete(Uri.parse('$baseUrl$apiUrl'), body: jsonEncode(data), headers: {
+  var res2 = await http.delete(
+    Uri.parse('$baseUrl$apiUrl'),
+    body: jsonEncode(data),
+    headers: {
       "content-type": "application/json",
       "accept": "application/json",
-    });
-    print("URL ::: ${"$baseUrl$apiUrl"}");
-    print("REQUEST ::: ${"$data"}");
-    print("RESPONCE :::  ${res2.body}");
-    print("CODE :::  ${res2.statusCode}");
-    var res = jsonDecode(res2.body) as Map<String, dynamic>;
-    if (res2.statusCode == 200) {
-      return res;
-    } else if (res2.statusCode == 401) {
-      // 🔥 Unauthorized - Redirect to Login
-      await handleUnauthorized();
-      return Future.error('Session expired. Please login again.');
-    } else if (res2.statusCode == 404) {
-      return Future.error(res);
-    } else if (res2.statusCode == 500) {
-      return Future.error(res);
-    } else {
-      return Future.error('Network Problem');
-    }
+      "Authorization": "Bearer $loginToken",
+    },
+  );
+
+  print("URL ::: ${"$baseUrl$apiUrl"}");
+  print("REQUEST ::: ${"$data"}");
+  print("RESPONCE :::  ${res2.body}");
+  print("CODE :::  ${res2.statusCode}");
+
+  var res = jsonDecode(res2.body) as Map<String, dynamic>;
+
+  if (res2.statusCode == 200) {
+    return res;
+  } else if (res2.statusCode == 401) {
+    await handleUnauthorized();
+    return Future.error('Session expired. Please login again.');
+  } else if (res2.statusCode == 404 || res2.statusCode == 400 || res2.statusCode == 500) {
+    return Future.error(res);
+  } else {
+    return Future.error('Network Problem');
+  }
+}
+
+
+Future<int> postRequestWithStatusCode({
+  required String apiUrl,
+  Map<String, dynamic> data = const <String, String>{},
+  int? id,
+}) async {
+  String? loginToken = await getLoginToken();
+
+  if (loginToken == null || loginToken.isEmpty) {
+    await handleUnauthorized();
+    return 401;
   }
 
-  Future<int> postRequestWithStatusCode({
-    required String apiUrl,
-    Map<String, dynamic> data = const <String, String>{},
-    int? id,
-  }) async {
-    var res2 = await http.post(
-      Uri.parse('$baseUrl$apiUrl'),
-      body: jsonEncode(data),
-      headers: {
-        "content-type": "application/json",
-        "accept": "application/json",
-      },
-    );
+  var res2 = await http.post(
+    Uri.parse('$baseUrl$apiUrl'),
+    body: jsonEncode(data),
+    headers: {
+      "content-type": "application/json",
+      "accept": "application/json",
+      "Authorization": "Bearer $loginToken",
+    },
+  );
 
-    print("URL ::: ${"$baseUrl$apiUrl"}");
-    print("REQUEST ::: ${"$data"}");
-    print("RESPONSE :::  ${res2.body}");
-    print("CODE :::  ${res2.statusCode}");
+  print("URL ::: ${"$baseUrl$apiUrl"}");
+  print("REQUEST ::: ${"$data"}");
+  print("RESPONSE :::  ${res2.body}");
+  print("CODE :::  ${res2.statusCode}");
 
-    int statusCode = res2.statusCode;
+  return res2.statusCode;
+}
 
-    return statusCode;
-  
-  }
   Future<Map<String, dynamic>> uploadFile({required String apiUrl, required File file, required String fieldName}) async {
     String? loginToken = await getLoginToken();
 

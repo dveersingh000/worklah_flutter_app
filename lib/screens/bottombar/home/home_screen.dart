@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   }
 
-  void getHomeData({String? date}) async {
+  Future<void> getHomeData({String? date}) async {
     setState(() {
       homeDataLoading = true;
     });
@@ -107,6 +107,11 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     getHomeData(); // Reload all jobs
   }
+
+  Future<void> _refreshHomePage() async {
+  await getHomeData(); // ✅ Refresh job data
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +171,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     )
                   : Expanded(
+                      child: RefreshIndicator(
+                      onRefresh: _refreshHomePage, // ✅ Call refresh function
+                      color: AppColors.themeColor, // Customize the refresh indicator color
                       child: SingleChildScrollView(
+                        physics: AlwaysScrollableScrollPhysics(), // ✅ Allow scrolling even when content is small
                         child: Column(
                           children: [
                             // ✅ Job List Container
@@ -192,6 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
+                  ),
         ],
       ),
     );

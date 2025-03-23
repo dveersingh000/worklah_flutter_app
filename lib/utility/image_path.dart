@@ -20,6 +20,7 @@ class ImagePath {
   static String noProfileIMG = commonIconPath + "no_profile.png";
   static String backViewIMG = commonIconPath + "back_view.png";
   static String singaporeFlag = commonIconPath + "singapore_flag.png";
+  static String malaysiaFlag = commonIconPath + "malaysia_flag.png";
   static String indiaFlag = commonIconPath + "india_flag.png";
   static String warningIcon = commonIconPath + "warningIcon.png";
   static String Job = commonIconPath + "Job.png";

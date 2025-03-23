@@ -17,6 +17,7 @@ import 'package:work_lah/utility/display_function.dart';
 import 'package:work_lah/utility/shared_prefs.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:work_lah/utility/syle_poppins.dart';
+import 'package:work_lah/utility/image_path.dart';
 
 class CompleteProfile extends StatefulWidget {
   final Map<String, dynamic> jobData;
@@ -82,7 +83,8 @@ class _CompleteProfileState extends State<CompleteProfile> {
       nameController.text = userModel?.fullName ?? 'Steve Ryan';
       phoneController.text = userModel?.phoneNumber ?? '+65 1234567890';
       emailController.text = userModel?.email ?? 'artx@gmail.com';
-      empStatusController.text = userModel?.employmentStatus ?? 'Singaporean/Permanent Resident';
+      empStatusController.text =
+          userModel?.employmentStatus ?? 'Singaporean/Permanent Resident';
     });
   }
 
@@ -101,7 +103,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
     });
 
     String dateOfBirth = '$dobYear-$dobMonth-$dobDate';
-    
+
     try {
       var response = await ApiProvider()
           .putRequest(apiUrl: '/api/profile/complete-profile', data: {
@@ -120,15 +122,16 @@ class _CompleteProfileState extends State<CompleteProfile> {
       );
       await saveUserData(updatedUser.toJson());
       setState(() {
-      isLoading = false;
-    });
+        isLoading = false;
+      });
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => BottomBarScreen(index: 4), // 🔥 Navigate to Profile Page
-      ),
-    );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              BottomBarScreen(index: 4), // 🔥 Navigate to Profile Page
+        ),
+      );
       // confirmJobBooking();
     } catch (e) {
       log('Error during Res: $e');
@@ -139,34 +142,6 @@ class _CompleteProfileState extends State<CompleteProfile> {
       });
     }
   }
-
-  // Future<void> confirmJobBooking() async {
-  //   DateTime date = DateTime.parse(widget.jobDATE);
-  //   String formattedDate = DateFormat('yyyy-MM-dd').format(date);
-  //   try {
-  //     var response = await ApiProvider().postRequest(
-  //         apiUrl: '/api/jobs/${widget.jobData['_id']}/apply',
-  //         data: {
-  //           "userId": userModel!.id.toString(),
-  //           "jobId": widget.jobData['_id'],
-  //           "shiftId": widget.shiftID,
-  //           "date": formattedDate,
-  //           "isStandby": false,
-  //         });
-  //     toast(response['message']);
-  //     setState(() {
-  //       isLoading = false;
-  //     });
-  //     moveReplacePage(context, BottomBarScreen(index: 0));
-  //   } catch (e) {
-  //     log('Error during Res: $e');
-  //     final errorMessage = e is Map ? e['message'] : 'An error occurred';
-  //     toast(errorMessage);
-  //     setState(() {
-  //       isLoading = false;
-  //     });
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -507,10 +482,20 @@ class _CompleteProfileState extends State<CompleteProfile> {
                           : ClipRRect(
                               borderRadius: BorderRadius.circular(50),
                               child: Image.network(
-                                userModel!.profilePicture,
+                                userModel?.profilePicture ??
+                                    '', // Handle null profilePicture
                                 fit: BoxFit.fill,
                                 height: 75.h,
                                 width: 75.w,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Image.asset(
+                                    ImagePath
+                                        .personIMG, // Placeholder image if network image fails
+                                    fit: BoxFit.fill,
+                                    height: 75.h,
+                                    width: 75.w,
+                                  );
+                                },
                               ),
                             ),
                     ),

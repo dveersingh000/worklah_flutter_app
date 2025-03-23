@@ -23,6 +23,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:intl/intl.dart';
+import 'package:work_lah/screens/bottombar/home/complete_profile/selfie_capture_screen.dart';
 
 // import 'package:work_lah/screens/bottombar/home/qr_scanner/scan_qr_screen.dart';
 
@@ -52,74 +53,89 @@ class _TopBarWidgetState extends State<TopBarWidget> {
   }
 
   // ✅ Pick Image & Upload
-  Future<void> _pickAndUploadImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+  // Future<void> _pickAndUploadImage() async {
+  //   final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null) {
-      if (kIsWeb) {
-        // ✅ Web: Convert XFile to bytes
-        Uint8List imageBytes = await pickedFile.readAsBytes();
-        await _uploadProfilePictureWeb(imageBytes);
-      } else {
-        // ✅ Mobile: Use File Path
-        File imageFile = File(pickedFile.path);
-        await _uploadProfilePicture(imageFile);
-      }
-    }
-  }
+  //   if (pickedFile != null) {
+  //     if (kIsWeb) {
+  //       // ✅ Web: Convert XFile to bytes
+  //       Uint8List imageBytes = await pickedFile.readAsBytes();
+  //       await _uploadProfilePictureWeb(imageBytes);
+  //     } else {
+  //       // ✅ Mobile: Use File Path
+  //       File imageFile = File(pickedFile.path);
+  //       await _uploadProfilePicture(imageFile);
+  //     }
+  //   }
+  // }
+  void _captureSelfie() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => SelfieCaptureScreen(
+        onSelfieCaptured: (String imagePath) {
+          setState(() {
+            widget.imgPath = imagePath;
+          });
+        },
+      ),
+    ),
+  );
+}
+
 
   // ✅ Upload Profile Picture (Mobile)
-  Future<void> _uploadProfilePicture(File imageFile) async {
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse("http://localhost:3000/api/profile/upload-profile-picture"),
-    );
+  // Future<void> _uploadProfilePicture(File imageFile) async {
+  //   var request = http.MultipartRequest(
+  //     'POST',
+  //     Uri.parse("http://localhost:3000/api/profile/upload-profile-picture"),
+  //   );
 
-    // ✅ Fetch Token from SharedPreferences
-    String? token = await getLoginToken();
-    if (token == null || token.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text("User is not authenticated. Please login again.")),
-      );
-      return;
-    }
+  //   // ✅ Fetch Token from SharedPreferences
+  //   String? token = await getLoginToken();
+  //   if (token == null || token.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //           content: Text("User is not authenticated. Please login again.")),
+  //     );
+  //     return;
+  //   }
 
-    // ✅ Ensure Bearer Token Format
-    request.headers['Authorization'] = "Bearer $token";
-    request.files.add(
-      await http.MultipartFile.fromPath("profilePicture", imageFile.path),
-    );
+  //   // ✅ Ensure Bearer Token Format
+  //   request.headers['Authorization'] = "Bearer $token";
+  //   request.files.add(
+  //     await http.MultipartFile.fromPath("profilePicture", imageFile.path),
+  //   );
 
-    await _sendRequest(request);
-  }
+  //   await _sendRequest(request);
+  // }
 
-  // ✅ Upload Profile Picture (Web)
-  Future<void> _uploadProfilePictureWeb(Uint8List imageBytes) async {
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse("http://localhost:3000/api/profile/upload-profile-picture"),
-    );
+  // // ✅ Upload Profile Picture (Web)
+  // Future<void> _uploadProfilePictureWeb(Uint8List imageBytes) async {
+  //   var request = http.MultipartRequest(
+  //     'POST',
+  //     Uri.parse("http://localhost:3000/api/profile/upload-profile-picture"),
+  //   );
 
-    // ✅ Fetch Token from SharedPreferences
-    String? token = await getLoginToken();
-    if (token == null || token.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text("User is not authenticated. Please login again.")),
-      );
-      return;
-    }
+  //   // ✅ Fetch Token from SharedPreferences
+  //   String? token = await getLoginToken();
+  //   if (token == null || token.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //           content: Text("User is not authenticated. Please login again.")),
+  //     );
+  //     return;
+  //   }
 
-    // ✅ Ensure Bearer Token Format
-    request.headers['Authorization'] = "Bearer $token";
-    request.files.add(
-      http.MultipartFile.fromBytes("profilePicture", imageBytes,
-          filename: "profile.jpg"),
-    );
+  //   // ✅ Ensure Bearer Token Format
+  //   request.headers['Authorization'] = "Bearer $token";
+  //   request.files.add(
+  //     http.MultipartFile.fromBytes("profilePicture", imageBytes,
+  //         filename: "profile.jpg"),
+  //   );
 
-    await _sendRequest(request);
-  }
+  //   await _sendRequest(request);
+  // }
 
   // ✅ Handle API Response
   Future<void> _sendRequest(http.MultipartRequest request) async {
@@ -187,7 +203,7 @@ class _TopBarWidgetState extends State<TopBarWidget> {
               ElevatedButton.icon(
                 onPressed: () {
                   Navigator.pop(context);
-                  _pickAndUploadImage();
+                  _captureSelfie();
                 },
                 icon: Icon(Icons.edit, color: Colors.white),
                 label: Text(

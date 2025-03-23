@@ -243,49 +243,69 @@ Expanded(
 
   /// 🗓 **Shift Date & Vacancy UI**
   Widget _dateVacancyWidget(String date, String vacancy, String standby) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.r),
-        color: AppColors.lightGreyColor.withOpacity(0.2),
-      ),
-      child: Row(
-        children: [
-          // 📅 Date
-          Icon(Icons.date_range, size: 14.sp, color: Colors.grey),
-          SizedBox(width: 4.w),
-          Text(
-            date,
-            style: CustomTextInter.medium12(AppColors.blackColor),
-          ),
-          SizedBox(width: 6.w),
+  return Container(
+    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(10.r),
+      color: AppColors.lightGreyColor.withOpacity(0.2),
+    ),
+    child: Wrap( // ✅ Wrap allows text to go to the next line if necessary
+      alignment: WrapAlignment.center,
+      spacing: 6.w,
+      children: [
+        // 📅 Date
+        Row(
+          mainAxisSize: MainAxisSize.min, // ✅ Ensures it only takes required space
+          children: [
+            Icon(Icons.date_range, size: 14.sp, color: Colors.grey),
+            SizedBox(width: 4.w),
+            Flexible( // ✅ Prevents text overflow
+              child: Text(
+                date,
+                style: CustomTextInter.medium12(AppColors.blackColor),
+                overflow: TextOverflow.ellipsis, // ✅ Avoids overflow issue
+                maxLines: 1,
+              ),
+            ),
+          ],
+        ),
 
-          // ✅ Vacancy
-          Row(
-            children: [
-              Icon(Icons.person, size: 14.sp, color: AppColors.blackColor),
-              SizedBox(width: 2.w),
-              Text(
+        // ✅ Vacancy
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.person, size: 14.sp, color: AppColors.blackColor),
+            SizedBox(width: 2.w),
+            Flexible(
+              child: Text(
                 vacancy,
                 style: CustomTextInter.medium12(AppColors.blackColor),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
-            ],
-          ),
-          SizedBox(width: 6.w),
+            ),
+          ],
+        ),
 
-          // 🟠 Standby Vacancy
-          Row(
-            children: [
-              Icon(Icons.person, size: 14.sp, color: AppColors.orangeColor),
-              SizedBox(width: 2.w),
-              Text(
+        // 🟠 Standby Vacancy
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.person, size: 14.sp, color: AppColors.orangeColor),
+            SizedBox(width: 2.w),
+            Flexible(
+              child: Text(
                 standby,
                 style: CustomTextInter.medium12(AppColors.orangeColor),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
 }

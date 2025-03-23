@@ -48,9 +48,9 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   bool isOtpHovered = false;
   List<Map<String, String>> countryCodes = [
-    {'code': '+65', 'flag': ImagePath.singaporeFlag}, // Singapore
-    {'code': '+60', 'flag': ImagePath.singaporeFlag}, // Malaysia
-    {'code': '+91', 'flag': ImagePath.indiaFlag}, // India
+    {'code': '+65', 'flag': ImagePath.singaporeFlag},
+    {'code': '+60', 'flag': ImagePath.malaysiaFlag},
+    {'code': '+91', 'flag': ImagePath.indiaFlag},
   ];
 
   String selectedCode = '+65';
@@ -420,7 +420,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             return null;
                           },
                         ),
-                        SizedBox(height: 50.h),
+                        SizedBox(height: 40.h),
                         MouseRegion(
                           onEnter: (_) => setState(() => isOtpHovered = true),
                           onExit: (_) => setState(() => isOtpHovered = false),
@@ -535,7 +535,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           },
                           text: 'Submit',
                         ),
-                        SizedBox(height: 20.h), // Maintain spacing consistency
+                        SizedBox(height: 20.h), 
                         Center(
                           child: Column(
                             children: [
@@ -544,40 +544,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 style: CustomTextInter.regular14(
                                     AppColors.blackColor),
                               ),
-                              SizedBox(
-                                  height:
-                                      12.h), // Space between text and button
-                              SizedBox(
-                                width: double
-                                    .infinity, // Match Submit button width
-                                child: OutlinedButton(
-                                  onPressed: () {
-                                    moveReplacePage(context, LoginScreen());
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    side: BorderSide(
-                                        color: AppColors
-                                            .themeColor), // Blue border
-                                    padding: EdgeInsets.symmetric(
-                                        vertical:
-                                            18.h), // Match Submit button height
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8.r),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Sign In',
-                                    style: CustomTextInter.regular14(
-                                        AppColors.themeColor),
-                                  ),
-                                ),
+                              SizedBox(height: 12.h),
+                              CustomButton(
+                                onTap: () {
+                                  moveReplacePage(context, LoginScreen());
+                                },
+                                text: 'Sign In',
+                                backgroundColor: AppColors
+                                    .whiteColor, 
+                                textStyle: CustomTextInter.regular14(
+                                    AppColors.themeColor),
+                                borderColor: AppColors
+                                    .themeColor, 
                               ),
                             ],
                           ),
                         ),
                         SizedBox(
                             height: 30
-                                .h), // Additional spacing before bottom of the page
+                                .h),
                       ],
                     ),
                   ),
