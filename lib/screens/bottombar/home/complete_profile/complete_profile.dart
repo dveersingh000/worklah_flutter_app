@@ -18,6 +18,8 @@ import 'package:work_lah/utility/shared_prefs.dart';
 import 'package:work_lah/utility/style_inter.dart';
 import 'package:work_lah/utility/syle_poppins.dart';
 import 'package:work_lah/utility/image_path.dart';
+import 'package:http/http.dart' as http;
+import 'package:path/path.dart';
 
 class CompleteProfile extends StatefulWidget {
   final Map<String, dynamic> jobData;
@@ -97,51 +99,132 @@ class _CompleteProfileState extends State<CompleteProfile> {
     }
   }
 
-  Future<void> completePRProfile() async {
-    setState(() {
-      isLoading = true;
-    });
+Future<void> completePRProfile() async {
+  setState(() {
+    isLoading = true;
+  });
 
-    String dateOfBirth = '$dobYear-$dobMonth-$dobDate';
+  try {
+    final String dob = '$dobYear-$dobMonth-$dobDate';
+    final String? plocExpiryDate =
+        (plocDate != null && plocMonth != null && plocYear != null)
+            ? '$plocYear-$plocMonth-$plocDate'
+            : null;
 
-    try {
-      var response = await ApiProvider()
-          .putRequest(apiUrl: '/api/profile/complete-profile', data: {
-        "userId": userModel!.id.toString(),
-        "dob": dateOfBirth,
-        "gender": selectedGender == 0 ? 'Male' : 'Female',
-        "postalCode": postalCodeController.text,
-        "nricNumber": nricController.text,
-        "finNumber": finController.text,
-        "studentIdNumber": studentIDController.text,
-        "schoolName": schoolNameController.text,
-      });
-      UserModel? fetchedUser = await getUserData();
-      UserModel updatedUser = fetchedUser!.copyWith(
-        profileCompleted: true,
-      );
-      await saveUserData(updatedUser.toJson());
-      setState(() {
-        isLoading = false;
-      });
+    final uri = Uri.parse('https://worklah.onrender.com/api/profile/complete-profile');
+    final request = http.MultipartRequest('PUT', uri);
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              BottomBarScreen(index: 4), // 🔥 Navigate to Profile Page
-        ),
-      );
-      // confirmJobBooking();
-    } catch (e) {
-      log('Error during Res: $e');
-      final errorMessage = e is Map ? e['message'] : 'An error occurred';
-      toast(errorMessage);
-      setState(() {
-        isLoading = false;
-      });
+    // 🌐 Add required fields
+    request.fields['userId'] = userModel!.id;
+    request.fields['dob'] = dob;
+    request.fields['gender'] = selectedGender == 0 ? 'Male' : 'Female';
+    request.fields['postalCode'] = postalCodeController.text;
+
+    final status = empStatusController.text;
+
+    // 📎 Upload files & fields based on employment status
+    if (status == 'Singaporean/Permanent Resident') {
+      request.fields['nricNumber'] = nricController.text;
+
+      if (selectedNRICFront != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'nricFront',
+          selectedNRICFront!.path,
+          filename: basename(selectedNRICFront!.path),
+        ));
+      }
+
+      if (selectedNRICBack != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'nricBack',
+          selectedNRICBack!.path,
+          filename: basename(selectedNRICBack!.path),
+        ));
+      }
     }
+
+    if (status == 'Long Term Visit Pass Holder') {
+      request.fields['finNumber'] = finController.text;
+      if (plocExpiryDate != null) {
+        request.fields['plocExpiryDate'] = plocExpiryDate;
+      }
+
+      if (selectedFINFront != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'finFront',
+          selectedFINFront!.path,
+          filename: basename(selectedFINFront!.path),
+        ));
+      }
+
+      if (selectedFINBack != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'finBack',
+          selectedFINBack!.path,
+          filename: basename(selectedFINBack!.path),
+        ));
+      }
+
+      if (selectedPLOC != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'plocImage',
+          selectedPLOC!.path,
+          filename: basename(selectedPLOC!.path),
+        ));
+      }
+    }
+
+    if (status == 'Student Pass') {
+      request.fields['studentIdNumber'] = studentIDController.text;
+      request.fields['schoolName'] = schoolNameController.text;
+
+      if (selectedStudentPass != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'studentCard',
+          selectedStudentPass!.path,
+          filename: basename(selectedStudentPass!.path),
+        ));
+      }
+    }
+
+    // 🖼️ Upload profile picture (selfie)
+    if (selectedProfileImage != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'selfie',
+        selectedProfileImage!.path,
+        filename: basename(selectedProfileImage!.path),
+      ));
+    }
+
+    // Optional: Auth header (if needed)
+    // request.headers['Authorization'] = 'Bearer ${userModel?.token}';
+
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      final body = await response.stream.bytesToString();
+      log('✅ Profile completed: $body');
+
+      final fetchedUser = await getUserData();
+      await saveUserData(fetchedUser!.copyWith(profileCompleted: true).toJson());
+
+      setState(() => isLoading = false);
+      Navigator.pushReplacement(
+        this.context,
+        MaterialPageRoute(builder: (_) => BottomBarScreen(index: 4)),
+      );
+    } else {
+      final body = await response.stream.bytesToString();
+      log('❌ Upload failed: $body');
+      toast('Failed: ${response.statusCode}');
+      setState(() => isLoading = false);
+    }
+  } catch (e) {
+    log('❌ Error during profile upload: $e');
+    toast('Something went wrong. Try again.');
+    setState(() => isLoading = false);
   }
+}
 
   @override
   Widget build(BuildContext context) {
